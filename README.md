@@ -16,6 +16,7 @@ Genomic datasets must be indexed (faidx/tabix) and compressed with bgzip.
 
 ## Statistics
 
+* Basic statistics: number of polymorphic sites, heterozygosity
 * Pi
 * PiN, PiS and PiN/PiS
 * Tajima's D
