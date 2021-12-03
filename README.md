@@ -25,3 +25,11 @@ Genomic datasets must be indexed (faidx/tabix) and compressed with bgzip.
 * GC/GC1/GC2/GC3 content
 
 ## Output
+
+## Comparison with other packages
+
+* BioPython
+* Bio++
+* sgkit
+* tskit
+* Genepop
