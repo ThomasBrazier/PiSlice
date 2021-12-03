@@ -26,6 +26,10 @@ Genomic datasets must be indexed (faidx/tabix) and compressed with bgzip.
 
 ## Output
 
+### Data
+
+### Figures
+
 ## Comparison with other packages
 
 * BioPython
@@ -33,3 +37,7 @@ Genomic datasets must be indexed (faidx/tabix) and compressed with bgzip.
 * sgkit
 * tskit
 * Genepop
+
+## Code convention
+
+* snake_case
