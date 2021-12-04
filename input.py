@@ -79,25 +79,39 @@ class fasta(FastaFile):
     Filename is given in argument when creating the 'fasta' object
     """
     def sample_chromosome(self, chromosome):
-        """ Sample a whole chromosome sequence """
+        """
+        Sample a whole chromosome sequence
+        :param chromosome: str, the name of the chromosome
+        :return: A DNA sequence of the whole chromosome (str)
+        """
         # Chromosome can be either an integer (index) or a string (name)
-        if isinstance(chromosome, str):
-            return self.fetch(chromosome)
-        elif isinstance(chromosome, int):
-            return self.fetch(self.references[chromosome-1])
-        else:
-            print("Chromosome must be integer (index) or character (name).")
+        return self.fetch(chromosome)
 
 
     def sample_sequence(self, chromosome, start, end):
-        """ Sample a DNA sequence on a chromosome within start-end coordinates (bp) """
+        """
+        Sample a DNA sequence on a chromosome within start-end coordinates (bp)
+        on a 1-offset (sequence begins at 1)
+        :param chromosome: str, the name of the chromosome
+        :param start: int, start position in the sequence
+        :param end: int, end position in the sequence
+        :return: A DNA sequence within boundaries start-end on a given chromosome (str)
+        """
         # Chromosome can be either an integer (index) or a string (name)
-        if isinstance(chromosome, str):
-            return self.fetch(chromosome, start, end)
-        elif isinstance(chromosome, int):
-            return self.fetch(self.references[chromosome-1], start, end)
-        else:
-            print("Chromosome must be integer (index) or character (name).")
+        return self.fetch(chromosome, start - 1, end)
+
+
+    def sample_feature(self, gff, feature, chromosome, start, end):
+        """
+        Sample a list of DNA sequences corresponding to features (e.g. CDS)
+        within a chromosome or start-end boundaries
+        :param gff: gff, a Data Frame with genome annotation
+        :param feature: str, the type of feature
+        :param chromosome: str, the name of the chromosome
+        :param start: int, start position in the sequence
+        :param end: int, end position in the sequence
+        :return: str, list of DNA sequences
+        """
 
 
 

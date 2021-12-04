@@ -1,3 +1,5 @@
+import pandas as pd
+
 import input
 import popstatistics as pop
 
@@ -44,6 +46,7 @@ geno = input.genotype(variants, chromosome, start, end)
 # https://onestopdataanalysis.com/read-fasta-file-python/
 import input
 fasta_file = "data/Osativa_GCA001433935.fna.gz"
+fasta_file = "data/Zmays_GCA_000005005.6.fa.gz"
 genome = input.fasta(fasta_file)
 
 # Explore the genome dataset
@@ -62,15 +65,14 @@ chromosome = genome["AP014957.1"]
 type(chromosome)
 len(chromosome)
 # Or use the methods in pysam
-chromosome = genome.fetch(genome.references[0])
+chromosome = genome.fetch(genome.references[1])
 type(chromosome)
 len(chromosome)
 
 # Sample a sequence
-start = 2000
-end = 2100
-chromosome = 1
-window = genome.sample_sequence(genome.references[0], start, end)
+start = 1
+end = 10000
+chromosome = genome.references[1]
 window = genome.sample_sequence(chromosome, start, end)
 
 type(window)
@@ -82,37 +84,46 @@ len(window)
 # Import a GFF annotation file
 #--------------------------------------------------------------------------------------
 import input
+fasta_file = "data/Osativa_GCA001433935.fna.gz"
+fasta_file = "data/Zmays_GCA_000005005.6.fa.gz"
+#fasta_file = "data/Athaliana_GCA000001735.fna.gz"
+genome = input.fasta(fasta_file)
+import popstatistics as pop
 gff_file = "data/Osativa_GCA001433935.gff3.gz"
+gff_file = "data/Zmays_GCA_000005005.6.gff3.gz"
+#gff_file = "data/Athaliana_GCA000001735.gff3.gz"
 gff = input.gff(gff_file)
 
-# from BCBio import GFF
-# import gzip
-# gff_file = "data/Osativa_GCA001433935.gff3"
-# file = open(gff_file, 'r', encoding="utf-8")
-# # Limiting to features of interest
-# limit_info = dict(gff_id=["1"], gff_source=["CDS"])
-# for rec in GFF.parse(file, limit_info=limit_info):
-#     print(rec.seq)
-# file.close()
-#
-#
-# # Read gff as a Pandas DataFrame
-# import pandas as pd
-# import gzip
-# gff_file = "data/Osativa_GCA001433935.gff3.gz"
-# file = open(gff_file, 'r', encoding="utf-8")
-# gff = pd.read_csv(gff_file, sep="\t", comment="#", low_memory=False,
-#                   names=["seqname", "source", "feature", "start", "end",
-#                          "score", "strand", "frame", "attribute"])
-# file.close()
-# gff
-
+# Compute a single GC and GC1, GC2, GC3 (i.e. single sequence or list of sequences)
+chromosome = genome.references[1]
 sequence = genome.sample_chromosome(chromosome)
+len(sequence)
+pop.gc(sequence)
+
+chromosome = genome.references[0]
+sequence = genome.sample_chromosome(chromosome)
+chromosome = "1"
+start = 1
+end = len(sequence)
 features = gff
-start = 2000
-end = 12000
-chromosome = 1
 pop.gcpos(sequence, features, chromosome, start, end)
+
+
+# Compute GC and GC1, GC2, GC3 for multiple sequences (multiple outputs)
+# Create a data frame with all chromosomes full length (one chromosome per row)
+nb_chromosome = 10
+windows = pd.DataFrame({
+    'Chromosome': genome.references[0:nb_chromosome],
+    'Start': [1] * nb_chromosome,
+    'End': list(map(lambda x: len(genome.fetch(x)), genome.references[0:nb_chromosome]))
+})
+windows
+results = piSlice(fasta=genome, gff=gff, windows=windows, statistics=["gcpos"])
+
+
+
+
+
 
 
 

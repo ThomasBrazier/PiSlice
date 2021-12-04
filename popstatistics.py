@@ -5,6 +5,38 @@ Population genomics statistics.
 Functions in this module are used to estimate population genomics statistics along a sequence.
 """
 
+import pandas as pd
+
+
+def piSlice(fasta, gff, windows, statistics):
+    """
+    The main function to return a data frame of population genomics statistics for a list of genomic windows.
+    :param fasta: fasta, a fasta object with multiple fasta sequences
+    :param gff: gff, a gff object
+    :param windows: DataFrame, a 3 columns pandas data frame with chromosome, start, end
+    :param statistics: str, a list of statistics to compute
+    :return: DataFrame, a data frame with population statistics for each windows
+    """
+    # Create pandas data frame from the windows input
+    popData = windows
+    if "gcpos" in statistics:
+        estimates = list(popData.apply(lambda x: gcpos(fasta.sample_chromosome(x["Chromosome"]),
+                                           gff,
+                                           x["Chromosome"],
+                                           int(x["Start"]),
+                                           int(x["End"])), axis=1))
+        list_gc = [item["gc"] for item in estimates]
+        list_gc1 = [item["gc1"] for item in estimates]
+        list_gc2 = [item["gc2"] for item in estimates]
+        list_gc3 = [item["gc3"] for item in estimates]
+        # Add column for statistics
+        popData["gc"] = list_gc
+        popData["gc1"] = list_gc1
+        popData["gc2"] = list_gc2
+        popData["gc3"] = list_gc3
+
+    return popData
+
 
 def gc(sequence):
     """
@@ -39,9 +71,12 @@ def gcpos(sequence, features, chromosome, start, end):
     :param chromosome: str, Chromosome name
     :param start: int, Start position of the sequence
     :param end: int, End position of the sequence
-    :return: Numeric values of the GC proportion at each codon position in the sequence
+    :return: Numeric values of the global GC proportion in the sequence and
+    GC proportion at each codon position in the sequence
     """
     # Subset features
+    # exons contain UTR that can alter the frame shift
+    # It is preferable to estimate GC content on CDS
     feat = features[(features['seqname'] == str(chromosome)) &
                     (features['start'] >= start) &
                     (features['end'] <= end) &
@@ -49,7 +84,8 @@ def gcpos(sequence, features, chromosome, start, end):
 
     # Subset a list of DNA sequences according to features positions
     # Beware of bp offset, GFF begins numbering at 1 (1-base offset) while Python begins at 0
-    list_seq = list(feat.apply(lambda x: sequence[x['start']:x['end'] + 1], axis=1))
+    # TODO verify the indexing 0-1 offset - A priori we are good, GC3 higher in rice, GC2 lower, as expected
+    list_seq = list(feat.apply(lambda x: sequence[x['start'] - 1:x['end']], axis=1))
 
     # Strand of the feature
     # Reverse str if strand == "-"
@@ -65,15 +101,17 @@ def gcpos(sequence, features, chromosome, start, end):
         list_seq[i] = seq[int(frame[i])::]
 
     # Split in three vectors of codon position
+    codons = "".join(map(lambda x: x[::], list_seq))
     codon1 = "".join(map(lambda x: x[0::3], list_seq))
     codon2 = "".join(map(lambda x: x[1::3], list_seq))
     codon3 = "".join(map(lambda x: x[2::3], list_seq))
 
     # Estimate GC content at each codon position
+    gc123 = gc(codons)
     gc1 = gc(codon1)
     gc2 = gc(codon2)
     gc3 = gc(codon3)
-    gc_content = {'gc1':gc1, 'gc2':gc2, 'gc3':gc3}
+    gc_content = {'gc':gc123, 'gc1':gc1, 'gc2':gc2, 'gc3':gc3}
 
     return gc_content
 
