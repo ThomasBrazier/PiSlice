@@ -98,6 +98,7 @@ class fasta(FastaFile):
         :return: A DNA sequence within boundaries start-end on a given chromosome (str)
         """
         # Chromosome can be either an integer (index) or a string (name)
+        # start - 1 because we work in 1-bp offset while python is 0-bp offset
         return self.fetch(chromosome, start - 1, end)
 
 

@@ -9,5 +9,10 @@ import argparse
 import input
 import popstatistics as pop
 
+# Arguments passed to functions
 
+# Header
+
+
+# Compute statistics
 piSlice()

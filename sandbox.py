@@ -83,45 +83,55 @@ len(window)
 #--------------------------------------------------------------------------------------
 # Import a GFF annotation file
 #--------------------------------------------------------------------------------------
+import pandas as pd
 import input
-fasta_file = "data/Osativa_GCA001433935.fna.gz"
+#fasta_file = "data/Osativa_GCA001433935.fna.gz"
 fasta_file = "data/Zmays_GCA_000005005.6.fa.gz"
 #fasta_file = "data/Athaliana_GCA000001735.fna.gz"
-genome = input.fasta(fasta_file)
+fasta = input.fasta(fasta_file)
 import popstatistics as pop
-gff_file = "data/Osativa_GCA001433935.gff3.gz"
+#gff_file = "data/Osativa_GCA001433935.gff3.gz"
 gff_file = "data/Zmays_GCA_000005005.6.gff3.gz"
 #gff_file = "data/Athaliana_GCA000001735.gff3.gz"
 gff = input.gff(gff_file)
+### !! gff and fasta must have the same chromosome names
+
 
 # Compute a single GC and GC1, GC2, GC3 (i.e. single sequence or list of sequences)
-chromosome = genome.references[1]
-sequence = genome.sample_chromosome(chromosome)
+chromosome = fasta.references[0]
+sequence = fasta.sample_chromosome(chromosome)
 len(sequence)
 pop.gc(sequence)
 
-chromosome = genome.references[0]
-sequence = genome.sample_chromosome(chromosome)
+chromosome = fasta.references[0]
+sequence = fasta.sample_chromosome(chromosome)
 chromosome = "1"
 start = 1
 end = len(sequence)
-features = gff
-pop.gcpos(sequence, features, chromosome, start, end)
+pop.gc_cds(fasta, gff, chromosome, start, end)
 
 
 # Compute GC and GC1, GC2, GC3 for multiple sequences (multiple outputs)
 # Create a data frame with all chromosomes full length (one chromosome per row)
-nb_chromosome = 10
+nb_chromosome = 5
 windows = pd.DataFrame({
-    'Chromosome': genome.references[0:nb_chromosome],
+    'Chromosome': fasta.references[0:nb_chromosome],
     'Start': [1] * nb_chromosome,
-    'End': list(map(lambda x: len(genome.fetch(x)), genome.references[0:nb_chromosome]))
+    'End': list(map(lambda x: len(fasta.fetch(x)), fasta.references[0:nb_chromosome]))
 })
-windows
-results = piSlice(fasta=genome, gff=gff, windows=windows, statistics=["gcpos"])
+results = pop.piSlice(fasta=fasta, gff=gff, windows=windows, statistics=["gc_cds"])
 
-
-
+# Compute GC and GC1, GC2, GC3 for all CDS sequences (multiple outputs)
+# Create a data frame with all CDS
+# TODO Take care of chromosome names, bug to fix when no sequence is found for a chromosome name
+gff_cds = gff[(gff['feature'] == "CDS") & (gff['seqname'].apply(lambda x: x in ["1","2","3","4","5","6","7","8","9","10"]))]
+windows = pd.DataFrame({
+    'Chromosome': list(gff_cds['seqname']),
+    'Start': list(gff_cds['start']),
+    'End': list(gff_cds['end'])
+})
+results = pop.piSlice(fasta=fasta, gff=gff, windows=windows, statistics=["gc"])
+# Take times - TODO optimization
 
 
 
