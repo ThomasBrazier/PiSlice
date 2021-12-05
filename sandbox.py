@@ -130,7 +130,7 @@ windows = pd.DataFrame({
     'Start': list(gff_cds['start']),
     'End': list(gff_cds['end'])
 })
-results = pop.piSlice(fasta=fasta, gff=gff, windows=windows, statistics=["gc"])
+results = pop.piSlice(fasta=fasta, gff=gff, windows=windows, statistics=["gc", "gc_cds"])
 # Take times - TODO optimization
 
 

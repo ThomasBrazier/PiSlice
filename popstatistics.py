@@ -9,6 +9,7 @@ import pandas as pd
 from Bio.Seq import Seq
 import input
 from itertools import compress
+import numpy as np
 
 def piSlice(fasta, gff, windows, statistics):
     """
@@ -30,8 +31,10 @@ def piSlice(fasta, gff, windows, statistics):
         # Sample all sequences from chromosomes and start-end positions
         list_seq = list(windows.apply(lambda x: fasta.sample_sequence(x["Chromosome"], x["Start"], x["End"]), axis=1))
         # Take care of short sequences (< 6bp) that introduce errors below
+        # TODO must return a windows data frame of same size as input, with NA values
         length_seq = list(map(lambda x: len(x), list_seq))
         list_seq = list(compress(list_seq, list(map(lambda x: int(x) > 6, length_seq))))
+        windows = windows[list(map(lambda x: int(x) > 6, length_seq))]
 
         # Compute GC content
         estimates = list(map(lambda x: gc(x), list_seq))
@@ -76,7 +79,11 @@ def gc(sequence):
     base_c = sequence.count("C")
     base_g = sequence.count("G")
     base_t = sequence.count("T")
-    gc_content = (base_g + base_c)/(base_a + base_c + base_g + base_t)
+    try:
+        gc_content = (base_g + base_c)/(base_a + base_c + base_g + base_t)
+    except ZeroDivisionError:
+        gc_content = np.NaN
+
 
     # Do not use the GC calculation from Biopython
     # Because it does not deal with 'N' nucleotides
