@@ -133,7 +133,7 @@ windows = pd.DataFrame({
 results = pop.piSlice(fasta=fasta, gff=gff, windows=windows, statistics=["gc", "gc_cds"])
 # Take times - TODO optimization
 
-
+ 
 
 
 

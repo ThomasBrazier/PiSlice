@@ -11,19 +11,41 @@ import input
 from itertools import compress
 import numpy as np
 
-def piSlice(fasta, gff, windows, statistics):
+def piSlice(windows, statistics=[""], **kwargs):
     """
     The main function to return a data frame of population genomics statistics for a list of genomic windows.
-    :param fasta: fasta, a fasta object with multiple fasta sequences
-    :param gff: gff, a gff object
     :param windows: DataFrame, a 3 columns pandas data frame with chromosome, start, end
     :param statistics: str, a list of statistics to compute
+    :param *fasta: fasta, a fasta object with multiple fasta sequences
+    :param *gff: DataFrame, a gff object
+    :param *vcf: vcf, a vcf object
     :return: DataFrame, a data frame with population statistics for each windows
     """
+    fasta = kwargs.items("fasta")
+    gff = kwargs.items("gff")
+    vcf = kwargs.items("vcf")
     # TODO A progress bar
     # Header
     print("Number of windows:", len(windows.index))
     print("Chromosomes are", " ".join(windows.Chromosome.unique()))
+
+    if "gene_count" in statistics:
+        print("Process number of genes")
+        estimates = windows.apply(lambda x: gene_count(gff,
+                                             x["Chromosome"],
+                                             x["Start"],
+                                             x["End"]),
+                             axis=1)
+        windows["gene_count"] = estimates
+
+    if "snp_count" in statistics:
+        print("Process number of SNPs")
+        estimates = windows.apply(lambda x: snp_count(vcf,
+                                             x["Chromosome"],
+                                             x["Start"],
+                                             x["End"]),
+                             axis=1)
+        windows["snp_count"] = estimates
 
     if "gc" in statistics:
         print("Process GC content")
@@ -44,7 +66,6 @@ def piSlice(fasta, gff, windows, statistics):
 
     if "gc_cds" in statistics:
         print("Process GC content with codon positions")
-
         # Compute GC content
         estimates = windows.apply(lambda x: gc_cds(fasta,
                                              gff,
@@ -63,6 +84,40 @@ def piSlice(fasta, gff, windows, statistics):
         windows["gc3"] = list_gc3
 
     return windows
+
+def gene_count(gff, chromosome, start, end):
+    """
+    Count the number of genes beginning in the window (number of start positions).
+    :param gff: DataFrame, a gff file with gene annotations
+    :param chromosome: str, Chromosome name
+    :param start: int, Start position of the sequence
+    :param end: int, End position of the sequence
+    :return: int, number of genes in the gff window
+    """
+    gene_count = gff[(gff['seqname'] == str(chromosome)) &
+               (gff['start'] >= int(start)) &
+               (gff['start'] < int(end)) &
+               (gff['feature'] == "gene")]
+    gene_count = len(gene_count)
+
+    return gene_count
+
+
+
+def snp_count(vcf, chromosome, start, end):
+    """
+    Count the number of snps in the window.
+    :param vcf: vcf, a vcf file with SNPs and their genomic positions
+    :param chromosome: str, Chromosome name
+    :param start: int, Start position of the sequence
+    :param end: int, End position of the sequence
+    :return: int, number of snps in the vcf window
+    """
+    snp_count = vcf.sample_variant(str(chromosome), int(start), int(end))
+    snp_count = sum(1 for item in snp_count)
+
+    return snp_count
+
 
 
 def gc(sequence):
@@ -83,7 +138,6 @@ def gc(sequence):
         gc_content = (base_g + base_c)/(base_a + base_c + base_g + base_t)
     except ZeroDivisionError:
         gc_content = np.NaN
-
 
     # Do not use the GC calculation from Biopython
     # Because it does not deal with 'N' nucleotides
@@ -128,6 +182,11 @@ def gc_cds(fasta, gff, chromosome, start, end):
     length_seq = list(feat.apply(lambda x: int(x['end']) - int(x['start']), axis=1))
     feat = feat[list(map(lambda x: int(x) > 6, length_seq))]
     list_seq = list(compress(list_seq, list(map(lambda x: int(x) > 6, length_seq))))
+
+    # debug purpose
+    # Verify that 1rst exon begins by start codon after reverse complement and frame shift
+    #list(map(lambda x: x[0:3], list_seq))
+    # Ok, it does verify
 
     # Strand of the feature
     # Reverse complement the DNA sequence if strand == "-"
