@@ -9,6 +9,8 @@ Estimate Pi and other population genomics statistics (PiN, PiS, Tajima's D, GC c
 
 ## Data & Input
 
+The type of data depends on the statistic computed.
+
 Data:
 * Genomic data (i.e. DNA sequences) as a fasta file
 * Polymorphism data (i.e. SNPs), as a vcf file
