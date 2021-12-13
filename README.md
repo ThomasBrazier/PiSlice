@@ -29,6 +29,8 @@ Genomes:
 * GC/GC1/GC2/GC3 content
 * GC/GC1/GC2/GC3 in first exon
 * Gene structure (e.g. length, number of exons)
+* CpG
+* Codon usage bias
 
 Population genomics:
 * Basic statistics: number of polymorphic sites, heterozygosity
