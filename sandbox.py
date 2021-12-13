@@ -95,7 +95,8 @@ gff_file = "data/Zmays_GCA_000005005.6.gff3.gz"
 #gff_file = "data/Athaliana_GCA000001735.gff3.gz"
 gff = input.gff(gff_file)
 ### !! gff and fasta must have the same chromosome names
-
+vcf_file = "data/Zmays.vcf.gz"
+vcf = input.vcf(vcf_file, strict_gt=True)
 
 # Compute a single GC and GC1, GC2, GC3 (i.e. single sequence or list of sequences)
 chromosome = fasta.references[0]
@@ -119,7 +120,7 @@ windows = pd.DataFrame({
     'Start': [1] * nb_chromosome,
     'End': list(map(lambda x: len(fasta.fetch(x)), fasta.references[0:nb_chromosome]))
 })
-results = pop.piSlice(fasta=fasta, gff=gff, windows=windows, statistics=["gc_cds"])
+results = pop.piSlice(windows=windows, statistics=["gene_count", "snp_count", "gc", "gc_cds"], fasta=fasta, gff=gff, vcf=vcf)
 
 # Compute GC and GC1, GC2, GC3 for all CDS sequences (multiple outputs)
 # Create a data frame with all CDS
@@ -130,7 +131,7 @@ windows = pd.DataFrame({
     'Start': list(gff_cds['start']),
     'End': list(gff_cds['end'])
 })
-results = pop.piSlice(fasta=fasta, gff=gff, windows=windows, statistics=["gc", "gc_cds"])
+results = pop.piSlice(windows=windows, statistics=["gc", "gc_cds"], fasta=fasta, gff=gff)
 # Take times - TODO optimization
 
  
