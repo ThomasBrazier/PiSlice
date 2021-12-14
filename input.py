@@ -14,6 +14,8 @@ from pysam import FastaFile
 import numpy as np
 import pandas
 import gzip
+from pandas import DataFrame
+import re
 
 class vcf(VCF):
     """
@@ -116,30 +118,56 @@ class fasta(FastaFile):
 
 
 
-def gff(gff_file):
+class gff(DataFrame):
     """
     Read a gff file and return a pandas 'DataFrame' object
     Filename is given in argument
     """
-    # def __init__(self):
-    #     file = open(gff_file, 'r', encoding="utf-8")
-    #     self.df = gff.read_csv(gff_file, sep="\t", comment="#", low_memory=False,
-    #                       names=["seqname", "source", "feature", "start", "end",
-    #                              "score", "strand", "frame", "attribute"])
-    #     file.close()
-    file = gzip.open(gff_file, 'r')
-    gff = pandas.read_csv(file, sep="\t", comment="#", low_memory=False,
-                          names=["seqname", "source", "feature", "start", "end",
-                                 "score", "strand", "frame", "attribute"])
-    file.close()
+    def __init__(self, gff_file):
+        file = gzip.open(gff_file, 'r')
+        super(gff, self).__init__(pandas.read_csv(file, sep="\t", comment="#", low_memory=False,
+                           names=["seqname", "source", "feature", "start", "end",
+                                  "score", "strand", "frame", "attribute"]))
+        file.close()
 
-    return gff
+
+
+
+
 
 def gff_parse_attributes(gff):
     """
     Parse the column attributes of a gff
-    :param gff: DataFrame, a gff file
+    :param gff: gff, a gff file based on Pandas DataFrame
     """
+    attr = gff['attribute']
+    # Parse first the available information in attributes
+    gene_id = []
+    mRNA_id = []
+    for a in attr:
+        try:
+            parent = re.findall(";Parent=[A-Za-z0-9\\.\\-\\|]*;", a)[0]
+        except:
+            parent = ""
+        parent = parent.replace(";", "")
+        parent = parent.replace("Parent=", "")
+        try:
+            gene_id.append(parent.split("|")[0])
+        except:
+            gene_id.append(None)
+        try:
+            mRNA_id.append([id for id in parent.split("|") if "mRNA" in id][0])
+        except:
+            mRNA_id.append(None)
+    # Infer exon parent from position or mRNA if information
+
+    # Infer CDS parents from position
+
+    # Infer rank from position or parent
+
+    # Complete the data frame
+    gff["gene_id"] = gene_id
+    gff["mRNA_id"] = mRNA_id
 
     return(gff)
 

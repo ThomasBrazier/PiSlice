@@ -85,17 +85,14 @@ len(window)
 #--------------------------------------------------------------------------------------
 import pandas as pd
 import input
-#fasta_file = "data/Osativa_GCA001433935.fna.gz"
-fasta_file = "data/Zmays_GCA_000005005.6.fa.gz"
-#fasta_file = "data/Athaliana_GCA000001735.fna.gz"
+fasta_file = "data/Oryza_sativa_GCA_001433935.1/GCA_001433935.1_IRGSP-1.0_genomic.fna.gz"
 fasta = input.fasta(fasta_file)
 import popstatistics as pop
-#gff_file = "data/Osativa_GCA001433935.gff3.gz"
-gff_file = "data/Zmays_GCA_000005005.6.gff3.gz"
-#gff_file = "data/Athaliana_GCA000001735.gff3.gz"
+gff_file = "data/Oryza_sativa_GCA_001433935.1/GCA_001433935.1_IRGSP-1.0_genomic.gff.gz"
+gff_file = "data/Arabidopsis_thaliana_GCA_000001735.2/GCA_000001735.2_TAIR10.1_genomic.gff.gz"
 gff = input.gff(gff_file)
 ### !! gff and fasta must have the same chromosome names
-vcf_file = "data/Zmays.vcf.gz"
+#vcf_file = "data/Zmays.vcf.gz"
 vcf = input.vcf(vcf_file, strict_gt=True)
 
 # Compute a single GC and GC1, GC2, GC3 (i.e. single sequence or list of sequences)

@@ -22,7 +22,7 @@ Output to STDOUT or files.
 The type of data depends on the statistic computed.
 
 Data:
-* Genomic data (i.e. DNA sequences) as a fasta file
+* Genomic data (i.e. DNA sequences) as a fasta file, bgzipped
 * Polymorphism data (i.e. SNPs), as a vcf file
 * Annotation data, as a gff3 file, ncbi annotation format for parsing attributes
 

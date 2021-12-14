@@ -73,10 +73,10 @@ def piSlice(windows, statistics=[""], **kwargs):
                                              x["Start"],
                                              x["End"]),
                              axis=1)
-        list_gc = [item["gc_cds"] for item in estimates]
-        list_gc1 = [item["gc1"] for item in estimates]
-        list_gc2 = [item["gc2"] for item in estimates]
-        list_gc3 = [item["gc3"] for item in estimates]
+        list_gc = [item[0] for item in estimates]
+        list_gc1 = [item[1] for item in estimates]
+        list_gc2 = [item[2] for item in estimates]
+        list_gc3 = [item[3] for item in estimates]
         # Add column for statistics
         windows["gc_cds"] = list_gc
         windows["gc1"] = list_gc1
@@ -213,8 +213,7 @@ def gc_cds(fasta, gff, chromosome, start, end):
     gc1 = gc(codon1)
     gc2 = gc(codon2)
     gc3 = gc(codon3)
-    gc_content = {'gc_cds':gc123, 'gc1':gc1, 'gc2':gc2, 'gc3':gc3}
-
+    gc_content = (gc123, gc1, gc2, gc3)
     return gc_content
 
 def gc1():
