@@ -2,6 +2,16 @@
 
 Estimate Pi and other population genomics statistics (PiN, PiS, Tajima's D, GC content) for a given list of windows coordinates.
 
+The package is made for flexible use, and can be run as a Python package or a standalone CLI.
+
+You can:
+* Estimate directly statistics from appropriate input stream in STDIN (i.e. DNA sequence extracted on your own)
+* Use a more contextual approach from a list of windows coordinates and input data files necessary to extract data (i.e; fasta, gff and/or vcf)
+
+
+Output to STDOUT or files.
+
+
 ## Dependencies
 
 * 'pysam' to read fasta files and 'sammtools faidx' is a dependency of 'pysam'
@@ -14,7 +24,7 @@ The type of data depends on the statistic computed.
 Data:
 * Genomic data (i.e. DNA sequences) as a fasta file
 * Polymorphism data (i.e. SNPs), as a vcf file
-* Annotation data, as a gff file
+* Annotation data, as a gff3 file, ncbi annotation format for parsing attributes
 
 Query:
 * a csv file with coordinates of genomic windows (chromosome, start, end)
@@ -29,7 +39,7 @@ Genomic datasets must be indexed (faidx/tabix) and compressed with bgzip.
 Genomes:
 * Gene density
 * GC/GC1/GC2/GC3 content
-* GC/GC1/GC2/GC3 in first exon
+* GC/GC1/GC2/GC3 in first exon (does not exist yet!)
 * Gene structure (e.g. length, number of exons)
 * CpG
 * Codon usage bias
@@ -37,7 +47,7 @@ Genomes:
 Population genomics:
 * Basic statistics: number of polymorphic sites, heterozygosity
 * Pi
-* PiN, PiS and PiN/PiS
+* PiN, PiS and PiN/PiS (PiN and PiS complicated to estimate!)
 * Tajima's D
 * SNP density
 
@@ -56,6 +66,8 @@ Population genomics:
 * sgkit
 * tskit
 * Genepop
+* gffread to extract CDS or exons
+* seqtk
 
 ## Code convention
 

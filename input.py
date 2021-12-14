@@ -135,3 +135,11 @@ def gff(gff_file):
 
     return gff
 
+def gff_parse_attributes(gff):
+    """
+    Parse the column attributes of a gff
+    :param gff: DataFrame, a gff file
+    """
+
+    return(gff)
+

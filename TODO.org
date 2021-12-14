@@ -1,3 +1,24 @@
 # TODO
 
 * Check the 1bp-offset for GC/GC1/GC2/GC3 computation
+
+* GFF tidy data or represent features as a tree with parent-child
+    A tree chromosome/gene/mRNA(trnascript)/exon/CDS
+    https://treelib.readthedocs.io/en/latest/
+
+* GFF - Feature ontology (child-parent)
+https://github.com/The-Sequence-Ontology/Specifications/blob/master/gff3.md
+see https://plastid.readthedocs.io/en/latest/generated/plastid.readers.gff.html#plastid.readers.gff.GFF3_TranscriptAssembler
+    "GFF3 files can have many different schemas of hierarchy. We deal with that here by allowing users to supply transcript_types and exon_types, to indicate which sorts of features should be included. By default, we use a subset of the schema set out in Seqence Ontology 2.5.3
+
+    Briefly:
+
+            The GFF3 file is combed for transcripts of the types specified by transcript_types, exons specified by exon_types, and CDS specified by types listed in cds_types.
+            Exons and CDS are matched with their parent transcripts by matching the Parent attributes of CDS and exons to the ID of transcripts. Transcripts are then constructed from those intervals, and coding regions set accordingly.
+            If exons and/or CDS features point to a Parent that is not in transcript_types, they are grouped into a new transcript, whose ID is set to the value of their shared Parent. However, this value for Parent might refer to a gene rather than a transcript; unfortunately this cannot be known without other information. Attributes that are common to all CDS and exon features are bubbled up to the transcript.
+            If exons and/or CDS features have no Parent, but share a common ID, they are grouped by ID into a single transcript. Attributes common to all CDS and exon features are bubbled up to the transcript. The Parent attribute is left unset.
+            If a transcript feature is annotated but has no child CDS or exons, the transcript is assumed to be non-coding and is assembled from any transcript-type features that share its ID attribute."
+
+* Splicing variants strategy (merge/keep, i.e. count as independent genes)
+
+* CDS/transcript assembly
