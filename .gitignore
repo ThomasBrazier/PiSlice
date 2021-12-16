@@ -3,7 +3,8 @@
 # Data
 data/
 .idea/
-
+.Rhistory
+.Rdata
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

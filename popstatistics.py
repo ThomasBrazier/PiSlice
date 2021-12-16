@@ -11,19 +11,19 @@ import input
 from itertools import compress
 import numpy as np
 
-def piSlice(windows, statistics=[""], **kwargs):
+def piSlice(windows, statistics=[""], *args, **kwargs):
     """
     The main function to return a data frame of population genomics statistics for a list of genomic windows.
     :param windows: DataFrame, a 3 columns pandas data frame with chromosome, start, end
     :param statistics: str, a list of statistics to compute
-    :param *fasta: fasta, a fasta object with multiple fasta sequences
-    :param *gff: DataFrame, a gff object
-    :param *vcf: vcf, a vcf object
+    :param **fasta: fasta, a fasta object with multiple fasta sequences
+    :param **gff: DataFrame, a gff object
+    :param **vcf: vcf, a vcf object
     :return: DataFrame, a data frame with population statistics for each windows
     """
-    fasta = kwargs.items("fasta")
-    gff = kwargs.items("gff")
-    vcf = kwargs.items("vcf")
+    fasta = kwargs.get("fasta", "")
+    gff = kwargs.get("gff", "")
+    vcf = kwargs.get("vcf", "")
     # TODO A progress bar
     # Header
     print("Number of windows:", len(windows.index))
@@ -138,11 +138,9 @@ def gc(sequence):
         gc_content = (base_g + base_c)/(base_a + base_c + base_g + base_t)
     except ZeroDivisionError:
         gc_content = np.NaN
-
     # Do not use the GC calculation from Biopython
     # Because it does not deal with 'N' nucleotides
     # gc_content = GC(sequence)/100
-
     return gc_content
 
 
@@ -165,13 +163,44 @@ def gc_cds(fasta, gff, chromosome, start, end):
     """
     # TODO - gc_cds return GC for one sequence only
     # TODO - and use function piSlice to treat multiple sequences
+    # GC of the full CDS is the GC content of all CDS regions, without subsetting by rank
+    gc_content = gc_cds_rank(fasta, gff, chromosome, start, end, rank="all")
+    return gc_content
+
+
+def gc_cds_rank(fasta, gff, chromosome, start, end, rank=1):
+    """
+    Estimate the fraction of G+C bases within CDS of a given rank (i.e. position) in the gene
+    at codon positions 1, 2 and 3.
+    Use a list of CDS features (start, end, frame, phase) and a rank number to subset a list of DNA sequences
+    and estimate GC content at each position.
+
+    This function computes directly GC content of a given rank.
+    An alternative strategy would be to subset the gff object by rank before computing with gc_cds() directly.
+
+    :param fasta: str, A fasta object with the same coordinates as the gff
+    :param gff: DataFrame, A gff data frame
+    :param chromosome: str, Chromosome name
+    :param start: int, Start position of the sequence
+    :param end: int, End position of the sequence
+    :param rank: int, rank (position) of the CDS in the gene
+    :return: Numeric values of the global GC proportion in the sequence and
+    GC proportion at each codon position in the sequence
+    """
     # Subset features
     # exons contain UTR that can alter the frame shift
     # It is preferable to estimate GC content on CDS
-    feat = gff[(gff['seqname'] == str(chromosome)) &
-               (gff['start'] >= int(start)) &
-               (gff['end'] <= int(end)) &
-               (gff['feature'] == "CDS")]
+    if rank == "all":
+        feat = gff[(gff['seqname'] == str(chromosome)) &
+                   (gff['start'] >= int(start)) &
+                   (gff['end'] <= int(end)) &
+                   (gff['feature'] == "CDS")]
+    else:
+        feat = gff[(gff['seqname'] == str(chromosome)) &
+                   (gff['start'] >= int(start)) &
+                   (gff['end'] <= int(end)) &
+                   (gff['feature'] == "CDS") &
+                   (gff['rank'] == int(rank))]
     # Sample sequences
     # Sample all sequences from chromosomes and start-end positions
     # Subset a list of DNA sequences according to features positions
@@ -185,16 +214,16 @@ def gc_cds(fasta, gff, chromosome, start, end):
 
     # debug purpose
     # Verify that 1rst exon begins by start codon after reverse complement and frame shift
-    #list(map(lambda x: x[0:3], list_seq))
+    # list(map(lambda x: x[0:3], list_seq))
     # Ok, it does verify
 
     # Strand of the feature
-    # Reverse complement the DNA sequence if strand == "-"
+    # Reverse the DNA sequence if strand == "-"
     strand = list(feat.apply(lambda x: x['strand'], axis=1))
     for i, seq in enumerate(list_seq):
         if strand[i] == "-":
-            #list_seq[i] = seq[::-1]
-            list_seq[i] = str(Seq(seq).reverse_complement())
+            list_seq[i] = seq[::-1]
+            # list_seq[i] = str(Seq(seq).reverse_complement())
 
     # Phase of CDS features
     # Remove 0, 1 or 2 bp at the beginning
@@ -207,7 +236,6 @@ def gc_cds(fasta, gff, chromosome, start, end):
     codon1 = "".join(map(lambda x: x[0::3], list_seq))
     codon2 = "".join(map(lambda x: x[1::3], list_seq))
     codon3 = "".join(map(lambda x: x[2::3], list_seq))
-
     # Estimate GC content at each codon position
     gc123 = gc(codons)
     gc1 = gc(codon1)
@@ -216,16 +244,23 @@ def gc_cds(fasta, gff, chromosome, start, end):
     gc_content = (gc123, gc1, gc2, gc3)
     return gc_content
 
-def gc1():
+
+
+def gc1(fasta, gff, chromosome, start, end):
+    gc1 = gc_cds(fasta, gff, chromosome, start, end)[1]
     return gc1
 
 
-def gc2():
-    return gc1
+def gc2(fasta, gff, chromosome, start, end):
+    gc2 =  gc_cds(fasta, gff, chromosome, start, end)[2]
+    return gc2
 
 
-def gc3():
-    return gc1
+def gc3(fasta, gff, chromosome, start, end):
+    gc = gc_cds(fasta, gff, chromosome, start, end)[3]
+    return gc3
+
+
 
 
 def pi(polymorphism):

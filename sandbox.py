@@ -89,11 +89,11 @@ fasta_file = "data/Oryza_sativa_GCA_001433935.1/GCA_001433935.1_IRGSP-1.0_genomi
 fasta = input.fasta(fasta_file)
 import popstatistics as pop
 gff_file = "data/Oryza_sativa_GCA_001433935.1/GCA_001433935.1_IRGSP-1.0_genomic.gff.gz"
-gff_file = "data/Arabidopsis_thaliana_GCA_000001735.2/GCA_000001735.2_TAIR10.1_genomic.gff.gz"
+#gff_file = "data/Arabidopsis_thaliana_GCA_000001735.2/GCA_000001735.2_TAIR10.1_genomic.gff.gz"
 gff = input.gff(gff_file)
 ### !! gff and fasta must have the same chromosome names
 #vcf_file = "data/Zmays.vcf.gz"
-vcf = input.vcf(vcf_file, strict_gt=True)
+#vcf = input.vcf(vcf_file, strict_gt=True)
 
 # Compute a single GC and GC1, GC2, GC3 (i.e. single sequence or list of sequences)
 chromosome = fasta.references[0]
@@ -103,7 +103,6 @@ pop.gc(sequence)
 
 chromosome = fasta.references[0]
 sequence = fasta.sample_chromosome(chromosome)
-chromosome = "1"
 start = 1
 end = len(sequence)
 pop.gc_cds(fasta, gff, chromosome, start, end)
@@ -117,6 +116,8 @@ windows = pd.DataFrame({
     'Start': [1] * nb_chromosome,
     'End': list(map(lambda x: len(fasta.fetch(x)), fasta.references[0:nb_chromosome]))
 })
+results = pop.piSlice(windows=windows, statistics=["gene_count", "gc", "gc_cds"], fasta=fasta, gff=gff)
+results
 results = pop.piSlice(windows=windows, statistics=["gene_count", "snp_count", "gc", "gc_cds"], fasta=fasta, gff=gff, vcf=vcf)
 
 # Compute GC and GC1, GC2, GC3 for all CDS sequences (multiple outputs)
@@ -131,9 +132,40 @@ windows = pd.DataFrame({
 results = pop.piSlice(windows=windows, statistics=["gc", "gc_cds"], fasta=fasta, gff=gff)
 # Take times - TODO optimization
 
- 
+#--------------------------------------------------------------------------------------
+# Try gffutils
+#--------------------------------------------------------------------------------------
+import gffutils
+gff_file = "data/Oryza_sativa_GCA_001433935.1/GCA_001433935.1_IRGSP-1.0_genomic.gff.gz"
+db_name = "data/Oryza_sativa_GCA_001433935.1/gff.db"
+db = gffutils.create_db(gff_file, db_name, force=True, keep_order=True,
+                        merge_strategy='merge', sort_attribute_values=True)
+# Creating DB takes time and resources
+# But do it once and then import existing DB
+db = gffutils.FeatureDB(db_name, keep_order=True)
+dir(db)
 
+for i in db.featuretypes():
+    print("Feature: %s: %d" % (i, db.count_features_of_type(i)))
 
+for g in db.features_of_type('gene'):
+    print(g)
+gene = db['gene-OSNPB_120641600']
+print(gene)
+
+for i in db.all_features():
+    print(i)
+
+# import input
+# gff_file = "data/Oryza_sativa_GCA_001433935.1/GCA_001433935.1_IRGSP-1.0_genomic.gff.gz"
+# gff_db = input.gff(gff_file, merge_strategy='merge', sort_attribute_values=True)
+# db_name = "data/Oryza_sativa_GCA_001433935.1/GCA_001433935.1_IRGSP-1.0_genomic.db"
+# gff_db = input.gff(db_name)
+# gffutils is powerful and useful for annotating features
+# But:
+# - do not provide exon/CDS rank
+# - slow for creating database
+# - do not infer when attributes are incomplete (e.g. from exon/CDS position)
 
 #--------------------------------------------------------------------------------------
 # Statistics

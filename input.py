@@ -16,6 +16,9 @@ import pandas
 import gzip
 from pandas import DataFrame
 import re
+import gffutils
+
+
 
 class vcf(VCF):
     """
@@ -131,10 +134,6 @@ class gff(DataFrame):
         file.close()
 
 
-
-
-
-
 def gff_parse_attributes(gff):
     """
     Parse the column attributes of a gff
@@ -159,15 +158,43 @@ def gff_parse_attributes(gff):
             mRNA_id.append([id for id in parent.split("|") if "mRNA" in id][0])
         except:
             mRNA_id.append(None)
-    # Infer exon parent from position or mRNA if information
+    # If not possible with attributes, infer mRNA parent from position
+    
+    # Infer exon parent from position or mRNA if information available
 
     # Infer CDS parents from position
 
     # Infer rank from position or parent
+    # CDS inherits rank of its parent exon
 
     # Complete the data frame
     gff["gene_id"] = gene_id
     gff["mRNA_id"] = mRNA_id
-
+    gff["transcript_rank"] = transcript_rank
+    gff["exon_id"] = exon_id
+    gff["cds_id"] = cds_id
+    gff["rank"] = rank
     return(gff)
+
+
+
+
+
+# DEPRECATED BELOW THIS LINE
+
+
+# class gff(gffutils.FeatureDB):
+#     """
+#     Read a gff file and return a gffutils database
+#     GFF filename or db is given in argument
+#     If GFF, create a new database
+#     otherwise, if db provided, import existing database
+#     """
+#     def __init__(self, file_name, *args, **kwargs):
+#         if ".gff" in file_name:
+#             super(gff, self).__init__(gffutils.create_db(file_name, re.sub(".gff.gz", ".db", file_name),
+#                                                          force=True, keep_order=True, *args, **kwargs))
+#         elif ".db" in file_name:
+#             print(file_name)
+#             super(gff, self).__init__(FeatureDB(file_name, keep_order=True, *args, **kwargs))
 

@@ -7,7 +7,7 @@ The package is made for flexible use, and can be run as a Python package or a st
 You can:
 * Estimate directly statistics from appropriate input stream in STDIN (i.e. DNA sequence extracted on your own)
 * Use a more contextual approach from a list of windows coordinates and input data files necessary to extract data (i.e; fasta, gff and/or vcf)
-
+* Biologically aware computation that is trying to recover automatically the structure of genes (i.e. splicing variants, exon rank, CDS phase and strand)
 
 Output to STDOUT or files.
 
@@ -54,6 +54,8 @@ Population genomics:
 ## Output
 
 * A data frame (csv) which contains for each genomic window queried an estimate of population genomic statistics as required by user
+
+* Extract sequences or coordinates of any feature of interest (e.g. CDS rank 1), ability to cut the genome in pieces (gene, splicing variants, exons, CDS). See features of gffutils.
 
 ### Data
 
