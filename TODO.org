@@ -22,3 +22,9 @@ see https://plastid.readthedocs.io/en/latest/generated/plastid.readers.gff.html#
 * Splicing variants strategy (merge/keep, i.e. count as independent genes)
 
 * CDS/transcript assembly
+
+* Handle introns
+
+* Handle UTR (i.e. exon - CDS)
+
+* Handle score in gff

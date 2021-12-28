@@ -2,12 +2,14 @@
 
 Estimate Pi and other population genomics statistics (PiN, PiS, Tajima's D, GC content) for a given list of windows coordinates.
 
+Genomic analyses from chromosome to intron/exon scale.
+
 The package is made for flexible use, and can be run as a Python package or a standalone CLI.
 
 You can:
 * Estimate directly statistics from appropriate input stream in STDIN (i.e. DNA sequence extracted on your own)
 * Use a more contextual approach from a list of windows coordinates and input data files necessary to extract data (i.e; fasta, gff and/or vcf)
-* Biologically aware computation that is trying to recover automatically the structure of genes (i.e. splicing variants, exon rank, CDS phase and strand)
+* Biologically aware computation capable to handle genome and gene architecture (e.g. introns/exons rank). PiSlice tries to recover automatically the structure of genes (i.e. splicing variants, exon rank, CDS phase and strand)
 
 Output to STDOUT or files.
 
@@ -50,6 +52,9 @@ Population genomics:
 * PiN, PiS and PiN/PiS (PiN and PiS complicated to estimate!)
 * Tajima's D
 * SNP density
+* SFS
+* DFE
+
 
 ## Output
 

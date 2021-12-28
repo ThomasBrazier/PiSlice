@@ -95,6 +95,11 @@ gff = input.gff(gff_file)
 #vcf_file = "data/Zmays.vcf.gz"
 #vcf = input.vcf(vcf_file, strict_gt=True)
 
+# Parse attributes
+gff = input.gff(gff_file, parse=True)
+gff
+df = gff.gff2pandas()
+
 # Compute a single GC and GC1, GC2, GC3 (i.e. single sequence or list of sequences)
 chromosome = fasta.references[0]
 sequence = fasta.sample_chromosome(chromosome)
@@ -118,6 +123,7 @@ windows = pd.DataFrame({
 })
 results = pop.piSlice(windows=windows, statistics=["gene_count", "gc", "gc_cds"], fasta=fasta, gff=gff)
 results
+# Results congruent with estimates of Ressayre et al. 2015 for A. thaliana and O. sativa
 results = pop.piSlice(windows=windows, statistics=["gene_count", "snp_count", "gc", "gc_cds"], fasta=fasta, gff=gff, vcf=vcf)
 
 # Compute GC and GC1, GC2, GC3 for all CDS sequences (multiple outputs)
