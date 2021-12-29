@@ -1,5 +1,11 @@
 # TODO
 
+* Methods to access regions/features/parent-children in a gff
+
+* Parse exon/CDS rank
+
+* read/write methods for gff (parsing can be long, better to save the result)
+
 * Check the 1bp-offset for GC/GC1/GC2/GC3 computation
 
 * GFF tidy data or represent features as a tree with parent-child

@@ -119,51 +119,38 @@ class fasta(FastaFile):
         """
 
 
-
-class gff(DataFrame):
+# Extending Pandas with new methods for gff
+# Accessible by the gff namespace
+@pandas.api.extensions.register_dataframe_accessor("gff")
+class GffAccessor:
     """
     Read a gff file and return a pandas 'DataFrame' object
     Filename is given in argument
     :param parse: False, if True, then attributes are parsed and the relationships parent-children are found between gene-mRNA-exon-CDS
     """
-    def __init__(self, gff_file, parse=True):
-        file = gzip.open(gff_file, 'r')
-        super(gff, self).__init__(pandas.read_csv(file, sep="\t", comment="#", low_memory=False,
-                           names=["seqname", "source", "feature", "start", "end",
-                                  "score", "strand", "frame", "attribute"]))
-        file.close()
-        # TODO Parse attributes
-        if (parse):
-            self = self.parse_attributes()
-        else:
-            self["id"] = None
-            self["parent"] = None
-            self["name"] = None
+    def __init__(self, pandas_obj):
+        #self._validate(pandas_obj)
+        self._obj = pandas_obj
 
-    def gff2pandas(self):
-        """
-        Display the gff as an original Pandas DataFrame
-        """
-        frame = {"seqname": self["seqname"], "source": self["source"], "feature": self["feature"],
-                "start": self["start"], "end": self["end"], "score": self["score"], "strand": self["strand"],
-                "frame": self["frame"], "attribute": self["attribute"], "id": self["id"],
-                 "parent": self["parent"], "name": self["name"]}
-        df = pandas.DataFrame(frame)
-        return(df)
+    # @staticmethod
+    # def _validate(obj):
+    #     # verify there is a column latitude and a column longitude
+    #     if "latitude" not in obj.columns or "longitude" not in obj.columns:
+    #         raise AttributeError("Must have 'latitude' and 'longitude'.")
 
-    def parse_attributes(self):
+    def parse_attributes(self, infer_rank=False):
         """
         Parse the column attributes of a gff
         :param gff: gff, a gff file based on Pandas DataFrame
         :return: gff, a gff augmented with three columns for attibutes
         """
-        gff = self
-        attr = self['attribute']
+        gff_obj = self._obj.copy(deep=True)
         # Parse first the available information in the attribute field
-        id = []
-        parent = []
-        name = []
-        for i, a in attr.iteritems():
+        id = [""] * gff_obj.shape[0]
+        parent = [""] * gff_obj.shape[0]
+        name = [""] * gff_obj.shape[0]
+        for i, r in gff_obj.iterrows():
+            a = r["attribute"]
             try:
                 id_name = re.findall("ID=[A-Za-z0-9\\.\\-\\|\\_]*;", a)[0]
             except:
@@ -171,9 +158,9 @@ class gff(DataFrame):
             id_name = id_name.replace(";", "")
             id_name = id_name.replace("ID=", "")
             try:
-                id.append(id_name)
+                id[i] = id_name
             except:
-                id.append(None)
+                id[i] = None
 
             try:
                 parent_term = re.findall(";Parent=[A-Za-z0-9\\.\\-\\|\\_]*;", a)[0]
@@ -182,9 +169,9 @@ class gff(DataFrame):
             parent_term = parent_term.replace(";", "")
             parent_term = parent_term.replace("Parent=", "")
             try:
-                parent.append(parent_term)
+                parent[i] = parent_term
             except:
-                parent.append(None)
+                parent[i] = None
 
             try:
                 name_term = re.findall(";Name=[A-Za-z0-9\\.\\-\\|\\_]*[;]*", a)[0]
@@ -193,51 +180,276 @@ class gff(DataFrame):
             name_term = name_term.replace(";", "")
             name_term = name_term.replace("Name=", "")
             try:
-                name.append(name_term)
+                name[i] = name_term
             except:
-                name.append(None)
-        gff["id"] = id
-        gff["parent"] = parent
-        gff["name"] = name
+                name[i] = None
+        gff_obj["id"] = id
+        gff_obj["parent"] = parent
+        gff_obj["name"] = name
 
         # Infer exon/CDS rank from position or parent
         # CDS inherits rank of its parent exon
+        rank = [0] * gff_obj.shape[0]
+        if (infer_rank):
+            # TODO optim at this step: long time for iterations
+            for i, a in gff_obj.iterrows():
+                if (a["feature"] in ["exon", "CDS"]):
+                    set = gff_obj.gff.children(a["parent"])
+                    set = set.gff.feature(a["feature"])
+                    if (a["strand"] == "+"):
+                        # Rank: how many sequences of the same feature and parent are before that one?
+                        rk = sum(bool(x) for x in [s <= int(a["start"]) for s in list(set["start"])])
+                    elif (a["strand"] == "-"):
+                        # Rank: how many sequences of the same feature and parent are after that one?
+                        # Read in the opposite direction
+                        rk = sum(bool(x) for x in [s >= int(a["start"]) for s in list(set["start"])])
+                else:
+                    rk = 0
+                rank[i] = int(rk)
 
-        return(gff)
+        gff_obj["rank"] = rank
+        return(gff_obj)
 
 
-    def region(self, start, end, chromosome):
+    def region(self, start, end, seq):
         """
-        Return a new gff with only features (rows) overlapping the queried genomic region
+        Return a new gff object with only features (rows) completely within the queried genomic region
         """
+        subset = self._obj[(self._obj["start"] >= start) & (self._obj["end"] >= end) & (self._obj["seqname"] == seq)]
         return(subset)
 
 
     def parent(self, id):
         """
-        Return a new gff with the parent of given ids
+        Return a new gff object with the parents of given children ids
         """
+        if (type(id) == str):
+            id = [id]
+        parent = list(set(self._obj[self._obj["id"].isin(id)]["parent"]))
+        subset = self._obj[self._obj["id"].isin(parent)]
         return(subset)
 
 
     def children(self, id):
         """
-        Return a new gff with children of given ids
+        Return a new gff object with children of given parent ids
         """
+        if (type(id) == str):
+            id = [id]
+        subset = self._obj[self._obj["parent"].isin(id)]
         return(subset)
 
 
-    def feature(self, type):
+    def feature(self, feature):
         """
-        Return a new gff with only features of a given type
+        Return a new gff object with only features of a given feature or list of features
         """
+        if (type(feature) == str):
+            feature = [feature]
+        subset = self._obj[self._obj["feature"].isin(feature)]
+        return(subset)
+
+    def rank(self, rank):
+        """
+        Return a new gff object with only exon/CDS of a given rank
+        """
+        subset = self._obj.feature(["exon", "CDS"])
+        if (type(rank) == int):
+            rank = [rank]
+        subset = subset[subset["rank"].isin(rank)]
         return(subset)
 
 
-    def summary(selfself):
+    def summary(self):
         """
         Print summary statistics on the gff (e.g. count of features, number of chromosomes and chromosomes length)
         """
+
+
+def read_gff(gff_file, parse=False):
+    if (".gff" in gff_file):
+        file = gzip.open(gff_file, 'r')
+        gff = pandas.read_csv(file, sep="\t", comment="#", low_memory=False,
+                              names=["seqname", "source", "feature", "start", "end",
+                                     "score", "strand", "frame", "attribute"])
+        file.close()
+        # Parse attributes
+        if (parse):
+            gff = gff.gff.parse_attributes()
+        else:
+            gff["id"] = None
+            gff["parent"] = None
+            gff["name"] = None
+            gff["rank"] = None
+    elif (".csv" in gff_file):
+        file = gzip.open(gff_file, 'r')
+        gff = pandas.read_csv(file, sep="\t", keep_default_na=False,na_values=['NaN'])
+        file.close()
+    return(gff)
+
+def write_gff2csv(gff, filename):
+    gff.to_csv(filename, sep="\t", compression="gzip", index=False)
+
+
+
+# class gff(DataFrame):
+#     """
+#     Read a gff file and return a pandas 'DataFrame' object
+#     Filename is given in argument
+#     :param parse: False, if True, then attributes are parsed and the relationships parent-children are found between gene-mRNA-exon-CDS
+#     """
+#     def __init__(self, gff_file, parse=True):
+#         file = gzip.open(gff_file, 'r')
+#         super(gff, self).__init__(pandas.read_csv(file, sep="\t", comment="#", low_memory=False,
+#                            names=["seqname", "source", "feature", "start", "end",
+#                                   "score", "strand", "frame", "attribute"]))
+#         file.close()
+#         # Parse attributes
+#         if (parse):
+#             self = self.parse_attributes()
+#         else:
+#             self["id"] = None
+#             self["parent"] = None
+#             self["name"] = None
+#             self["rank"] = None
+#
+#
+#     def gff2pandas(self):
+#         """
+#         Display the gff as an original Pandas DataFrame
+#         """
+#         frame = {"seqname": self["seqname"], "source": self["source"], "feature": self["feature"],
+#                 "start": self["start"], "end": self["end"], "score": self["score"], "strand": self["strand"],
+#                 "frame": self["frame"], "attribute": self["attribute"], "id": self["id"],
+#                  "parent": self["parent"], "name": self["name"], "rank": self["rank"]}
+#         df = pandas.DataFrame(frame)
+#         return(df)
+#
+#     def parse_attributes(self, infer_rank=False):
+#         """
+#         Parse the column attributes of a gff
+#         :param gff: gff, a gff file based on Pandas DataFrame
+#         :return: gff, a gff augmented with three columns for attibutes
+#         """
+#         gff = self
+#         attr = self['attribute']
+#         # Parse first the available information in the attribute field
+#         id = []
+#         parent = []
+#         name = []
+#         for i, a in attr.iteritems():
+#             try:
+#                 id_name = re.findall("ID=[A-Za-z0-9\\.\\-\\|\\_]*;", a)[0]
+#             except:
+#                 id_name = ""
+#             id_name = id_name.replace(";", "")
+#             id_name = id_name.replace("ID=", "")
+#             try:
+#                 id.append(id_name)
+#             except:
+#                 id.append(None)
+#
+#             try:
+#                 parent_term = re.findall(";Parent=[A-Za-z0-9\\.\\-\\|\\_]*;", a)[0]
+#             except:
+#                 parent_term = ""
+#             parent_term = parent_term.replace(";", "")
+#             parent_term = parent_term.replace("Parent=", "")
+#             try:
+#                 parent.append(parent_term)
+#             except:
+#                 parent.append(None)
+#
+#             try:
+#                 name_term = re.findall(";Name=[A-Za-z0-9\\.\\-\\|\\_]*[;]*", a)[0]
+#             except:
+#                 name_term = ""
+#             name_term = name_term.replace(";", "")
+#             name_term = name_term.replace("Name=", "")
+#             try:
+#                 name.append(name_term)
+#             except:
+#                 name.append(None)
+#         gff["id"] = id
+#         gff["parent"] = parent
+#         gff["name"] = name
+#
+#         # Infer exon/CDS rank from position or parent
+#         # CDS inherits rank of its parent exon
+#         rank = [""] * gff.shape[0]
+#         if (infer_rank):
+#             # TODO optim at this step: long time for iterations
+#             for i, a in gff.iterrows():
+#                 if (a["feature"] in ["exon", "CDS"]):
+#                     set = gff.children(a["parent"])
+#                     set = gff.feature(a["feature"])
+#                     if (a["strand"] == "+"):
+#                         # Rank: how many sequences of the same feature and parent are before that one?
+#                         rk = sum(bool(x) for x in [s <= int(a["start"]) for s in list(set["start"])])
+#                     elif (a["strand"] == "-"):
+#                         # Rank: how many sequences of the same feature and parent are after that one?
+#                         # Read in the opposite direction
+#                         rk = sum(bool(x) for x in [s >= int(a["start"]) for s in list(set["start"])])
+#                 else:
+#                     rk = None
+#                 rank[i] = rk
+#
+#         gff["rank"] = rank
+#         return(gff)
+#
+#
+#     def rows(self, idx):
+#         """
+#         Return a new gff object with only rows in the index range
+#         """
+#         if (type(idx) == str):
+#             idx = [idx]
+#         subset = self.iloc[idx]
+#         return(subset)
+#
+#     def region(self, start, end, seq):
+#         """
+#         Return a new gff object with only features (rows) completely within the queried genomic region
+#         """
+#         subset = self[(self["start"] >= start) & (self["end"] >= end) & (self["seqname"] == seq)]
+#         return(subset)
+#
+#
+#     def parent(self, id):
+#         """
+#         Return a new gff object with the parents of given children ids
+#         """
+#         if (type(id) == str):
+#             id = [id]
+#         parent = list(set(self[self["id"].isin(id)]["parent"]))
+#         subset = self[self["id"].isin(parent)]
+#         return(subset)
+#
+#
+#     def children(self, id):
+#         """
+#         Return a new gff object with children of given parent ids
+#         """
+#         if (type(id) == str):
+#             id = [id]
+#         subset = self[self["parent"].isin(id)]
+#         return(subset)
+#
+#
+#     def feature(self, feature):
+#         """
+#         Return a new gff object with only features of a given feature or list of features
+#         """
+#         if (type(feature) == str):
+#             feature = [feature]
+#         subset = self[self["feature"].isin(feature)]
+#         return(subset)
+#
+#
+#     def summary(self):
+#         """
+#         Print summary statistics on the gff (e.g. count of features, number of chromosomes and chromosomes length)
+#         """
 
 
 
