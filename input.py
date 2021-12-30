@@ -16,7 +16,7 @@ import pandas
 import gzip
 from pandas import DataFrame
 import re
-
+import swifter
 
 
 class vcf(VCF):
@@ -189,23 +189,43 @@ class GffAccessor:
 
         # Infer exon/CDS rank from position or parent
         # CDS inherits rank of its parent exon
-        rank = [0] * gff_obj.shape[0]
+        # rank = [0] * gff_obj.shape[0]
+        def rank_inference(gff_obj, x):
+            # Optim: do not create new objects
+            filter_ = ((gff_obj["feature"] == x["feature"]) & (gff_obj["parent"] == x["parent"]))
+            #set = gff_obj.gff.children(x["parent"])
+            #set = set.gff.feature(x["feature"])
+            #gff_obj[(gff_obj["feature"] == x["feature"]) & (gff_obj["parent"] == x["parent"])]["start"]
+            if (x["strand"] == "+"):
+            # Rank: how many sequences of the same feature and parent are before that one?
+                rk = sum(bool(z) for z in [s <= int(x["start"]) for s in list(gff_obj[filter_]["start"])])
+            elif (x["strand"] == "-"):
+            # Rank: how many sequences of the same feature and parent are after that one?
+            # Read in the opposite direction
+                rk = sum(bool(z) for z in [s >= int(x["start"]) for s in list(gff_obj[filter_]["start"])])
+            return(rk)
+
         if (infer_rank):
-            # TODO optim at this step: long time for iterations
-            for i, a in gff_obj.iterrows():
-                if (a["feature"] in ["exon", "CDS"]):
-                    set = gff_obj.gff.children(a["parent"])
-                    set = set.gff.feature(a["feature"])
-                    if (a["strand"] == "+"):
-                        # Rank: how many sequences of the same feature and parent are before that one?
-                        rk = sum(bool(x) for x in [s <= int(a["start"]) for s in list(set["start"])])
-                    elif (a["strand"] == "-"):
-                        # Rank: how many sequences of the same feature and parent are after that one?
-                        # Read in the opposite direction
-                        rk = sum(bool(x) for x in [s >= int(a["start"]) for s in list(set["start"])])
-                else:
-                    rk = 0
-                rank[i] = int(rk)
+            # # TODO optim at this step: long time for iterations
+            # for i, a in gff_obj.iterrows():
+            #     if (a["feature"] in ["exon", "CDS"]):
+            #         set = gff_obj.gff.children(a["parent"])
+            #         set = set.gff.feature(a["feature"])
+            #         if (a["strand"] == "+"):
+            #             # Rank: how many sequences of the same feature and parent are before that one?
+            #             rk = sum(bool(x) for x in [s <= int(a["start"]) for s in list(set["start"])])
+            #         elif (a["strand"] == "-"):
+            #             # Rank: how many sequences of the same feature and parent are after that one?
+            #             # Read in the opposite direction
+            #             rk = sum(bool(x) for x in [s >= int(a["start"]) for s in list(set["start"])])
+            #     else:
+            #         rk = 0
+            #     rank[i] = int(rk)
+            # TODO vectorization
+            rank = gff_obj.swifter.apply(lambda x: rank_inference(gff_obj, x) if x["feature"] in ["exon", "CDS"] else 0,
+                                 axis=1)
+        else:
+            rank = [0] * gff_obj.shape[0]
 
         gff_obj["rank"] = rank
         return(gff_obj)
@@ -253,7 +273,7 @@ class GffAccessor:
         """
         Return a new gff object with only exon/CDS of a given rank
         """
-        subset = self._obj.feature(["exon", "CDS"])
+        subset = self._obj.gff.feature(["exon", "CDS"])
         if (type(rank) == int):
             rank = [rank]
         subset = subset[subset["rank"].isin(rank)]
@@ -289,8 +309,6 @@ def read_gff(gff_file, parse=False):
 
 def write_gff2csv(gff, filename):
     gff.to_csv(filename, sep="\t", compression="gzip", index=False)
-
-
 
 # class gff(DataFrame):
 #     """

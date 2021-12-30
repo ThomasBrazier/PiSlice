@@ -98,8 +98,13 @@ gff = input.gff(gff_file)
 # Parse attributes
 gff = input.gff(gff_file, parse=True)
 gff
-df = gff.gff2pandas()
+save_filename = "data/Arabidopsis_thaliana_GCA_000001735.2/GCA_000001735.2_TAIR10.1_genomic.csv.gz"
+input.write_gff2csv(gff, save_filename)
+gff = input.read_gff(save_filename)
 
+
+# Test statistics functions
+import popstatistics as pop
 # Compute a single GC and GC1, GC2, GC3 (i.e. single sequence or list of sequences)
 chromosome = fasta.references[0]
 sequence = fasta.sample_chromosome(chromosome)
