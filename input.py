@@ -16,7 +16,8 @@ import pandas
 import gzip
 from pandas import DataFrame
 import re
-import swifter
+import mapply
+import multiprocessing
 
 
 class vcf(VCF):
@@ -138,13 +139,15 @@ class GffAccessor:
     #     if "latitude" not in obj.columns or "longitude" not in obj.columns:
     #         raise AttributeError("Must have 'latitude' and 'longitude'.")
 
-    def parse_attributes(self, infer_rank=False):
+    def parse_attributes(self, infer_rank=False, n_cpus=0):
         """
         Parse the column attributes of a gff
         :param gff: gff, a gff file based on Pandas DataFrame
         :return: gff, a gff augmented with three columns for attibutes
         """
         gff_obj = self._obj.copy(deep=True)
+        if (n_cpus == 0):
+            n_cpus = multiprocessing.cpu_count()
         # Parse first the available information in the attribute field
         id = [""] * gff_obj.shape[0]
         parent = [""] * gff_obj.shape[0]
@@ -203,6 +206,8 @@ class GffAccessor:
             # Rank: how many sequences of the same feature and parent are after that one?
             # Read in the opposite direction
                 rk = sum(bool(z) for z in [s >= int(x["start"]) for s in list(gff_obj[filter_]["start"])])
+            else:
+                rk = 0
             return(rk)
 
         if (infer_rank):
@@ -222,7 +227,8 @@ class GffAccessor:
             #         rk = 0
             #     rank[i] = int(rk)
             # TODO vectorization
-            rank = gff_obj.swifter.apply(lambda x: rank_inference(gff_obj, x) if x["feature"] in ["exon", "CDS"] else 0,
+            mapply.init(n_workers=n_cpus)
+            rank = gff_obj.mapply(lambda x: rank_inference(gff_obj, x) if x["feature"] in ["exon", "CDS"] else 0,
                                  axis=1)
         else:
             rank = [0] * gff_obj.shape[0]

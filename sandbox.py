@@ -45,8 +45,7 @@ geno = input.genotype(variants, chromosome, start, end)
 #--------------------------------------------------------------------------------------
 # https://onestopdataanalysis.com/read-fasta-file-python/
 import input
-fasta_file = "data/Osativa_GCA001433935.fna.gz"
-fasta_file = "data/Zmays_GCA_000005005.6.fa.gz"
+fasta_file = "data/Oryza_sativa_GCA_001433935.1/GCA_001433935.1_IRGSP-1.0_genomic.fna.gz"
 genome = input.fasta(fasta_file)
 
 # Explore the genome dataset
@@ -85,51 +84,55 @@ len(window)
 #--------------------------------------------------------------------------------------
 import pandas as pd
 import input
-fasta_file = "data/Oryza_sativa_GCA_001433935.1/GCA_001433935.1_IRGSP-1.0_genomic.fna.gz"
-fasta = input.fasta(fasta_file)
-import popstatistics as pop
-gff_file = "data/Oryza_sativa_GCA_001433935.1/GCA_001433935.1_IRGSP-1.0_genomic.gff.gz"
-#gff_file = "data/Arabidopsis_thaliana_GCA_000001735.2/GCA_000001735.2_TAIR10.1_genomic.gff.gz"
-gff = input.gff(gff_file)
-### !! gff and fasta must have the same chromosome names
-#vcf_file = "data/Zmays.vcf.gz"
-#vcf = input.vcf(vcf_file, strict_gt=True)
+# gff_file = "data/Oryza_sativa_GCA_001433935.1/GCA_001433935.1_IRGSP-1.0_genomic.gff.gz"
+# gff_file = "data/Arabidopsis_thaliana_GCA_000001735.2/GCA_000001735.2_TAIR10.1_genomic.gff.gz"
+# gff = input.read_gff(gff_file)
+# gff = gff.gff.parse_attributes(infer_rank=True)
 
-# Parse attributes
-gff = input.gff(gff_file, parse=True)
-gff
-save_filename = "data/Arabidopsis_thaliana_GCA_000001735.2/GCA_000001735.2_TAIR10.1_genomic.csv.gz"
-input.write_gff2csv(gff, save_filename)
+# gff.gff.feature("gene")
+# gff.gff.region(1,20000,"CP002684.1")
+# gff.gff.parent("exon-gnl|JCVI|mRNA.AT1G01010.1-2")
+# gff.gff.children("gene-AT1G01020")
+# gff.gff.rank(1)
+
+save_filename = "data/Oryza_sativa_GCA_001433935.1/GCA_001433935.1_IRGSP-1.0_genomic.csv.gz"
+#save_filename = "data/Arabidopsis_thaliana_GCA_000001735.2/GCA_000001735.2_TAIR10.1_genomic.csv.gz"
+#input.write_gff2csv(gff, save_filename)
 gff = input.read_gff(save_filename)
-
 
 # Test statistics functions
 import popstatistics as pop
 # Compute a single GC and GC1, GC2, GC3 (i.e. single sequence or list of sequences)
-chromosome = fasta.references[0]
-sequence = fasta.sample_chromosome(chromosome)
+chromosome = genome.references[0]
+sequence = genome.sample_chromosome(chromosome)
 len(sequence)
 pop.gc(sequence)
 
-chromosome = fasta.references[0]
-sequence = fasta.sample_chromosome(chromosome)
+chromosome = genome.references[0]
+sequence = genome.sample_chromosome(chromosome)
 start = 1
 end = len(sequence)
-pop.gc_cds(fasta, gff, chromosome, start, end)
+pop.gc_cds(genome, gff, chromosome, start, end)
 
 
 # Compute GC and GC1, GC2, GC3 for multiple sequences (multiple outputs)
 # Create a data frame with all chromosomes full length (one chromosome per row)
 nb_chromosome = 5
 windows = pd.DataFrame({
-    'Chromosome': fasta.references[0:nb_chromosome],
+    'Chromosome': genome.references[0:nb_chromosome],
     'Start': [1] * nb_chromosome,
-    'End': list(map(lambda x: len(fasta.fetch(x)), fasta.references[0:nb_chromosome]))
+    'End': list(map(lambda x: len(genome.fetch(x)), genome.references[0:nb_chromosome]))
 })
-results = pop.piSlice(windows=windows, statistics=["gene_count", "gc", "gc_cds"], fasta=fasta, gff=gff)
+results = pop.piSlice(windows=windows, statistics=["gene_count", "gc", "gc_cds"], fasta=genome, gff=gff)
 results
 # Results congruent with estimates of Ressayre et al. 2015 for A. thaliana and O. sativa
-results = pop.piSlice(windows=windows, statistics=["gene_count", "snp_count", "gc", "gc_cds"], fasta=fasta, gff=gff, vcf=vcf)
+
+# Get GC for CDS rank 1 & next ones
+results_rank1 = pop.piSlice(windows=windows, statistics=["gc", "gc_cds"], fasta=genome, gff=gff.gff.rank(1))
+results_rank2 = pop.piSlice(windows=windows, statistics=["gc", "gc_cds"], fasta=genome, gff=gff.gff.rank(2))
+results_rank3 = pop.piSlice(windows=windows, statistics=["gc", "gc_cds"], fasta=genome, gff=gff.gff.rank(3))
+
+
 
 # Compute GC and GC1, GC2, GC3 for all CDS sequences (multiple outputs)
 # Create a data frame with all CDS
@@ -140,8 +143,11 @@ windows = pd.DataFrame({
     'Start': list(gff_cds['start']),
     'End': list(gff_cds['end'])
 })
-results = pop.piSlice(windows=windows, statistics=["gc", "gc_cds"], fasta=fasta, gff=gff)
+results = pop.piSlice(windows=windows, statistics=["gc", "gc_cds"], fasta=genome, gff=gff)
 # Take times - TODO optimization
+
+
+
 
 #--------------------------------------------------------------------------------------
 # Try gffutils
