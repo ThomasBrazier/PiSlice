@@ -112,7 +112,7 @@ chromosome = genome.references[0]
 sequence = genome.sample_chromosome(chromosome)
 start = 1
 end = len(sequence)
-pop.gc_cds(genome, gff, chromosome, start, end)
+pop.gc_codon(genome, gff, chromosome, start, end)
 
 
 # Compute GC and GC1, GC2, GC3 for multiple sequences (multiple outputs)
@@ -123,14 +123,14 @@ windows = pd.DataFrame({
     'Start': [1] * nb_chromosome,
     'End': list(map(lambda x: len(genome.fetch(x)), genome.references[0:nb_chromosome]))
 })
-results = pop.piSlice(windows=windows, statistics=["gene_count", "gc", "gc_cds"], fasta=genome, gff=gff)
+results = pop.piSlice(windows=windows, statistics=["gene_count", "gc", "gc_codon"], fasta=genome, gff=gff)
 results
 # Results congruent with estimates of Ressayre et al. 2015 for A. thaliana and O. sativa
 
 # Get GC for CDS rank 1 & next ones
-results_rank1 = pop.piSlice(windows=windows, statistics=["gc", "gc_cds"], fasta=genome, gff=gff.gff.rank(1))
-results_rank2 = pop.piSlice(windows=windows, statistics=["gc", "gc_cds"], fasta=genome, gff=gff.gff.rank(2))
-results_rank3 = pop.piSlice(windows=windows, statistics=["gc", "gc_cds"], fasta=genome, gff=gff.gff.rank(3))
+results_rank1 = pop.piSlice(windows=windows, statistics=["gc", "gc_codon"], fasta=genome, gff=gff.gff.rank(1))
+results_rank2 = pop.piSlice(windows=windows, statistics=["gc", "gc_codon"], fasta=genome, gff=gff.gff.rank(2))
+results_rank3 = pop.piSlice(windows=windows, statistics=["gc", "gc_codon"], fasta=genome, gff=gff.gff.rank(3))
 
 
 
@@ -143,7 +143,7 @@ windows = pd.DataFrame({
     'Start': list(gff_cds['start']),
     'End': list(gff_cds['end'])
 })
-results = pop.piSlice(windows=windows, statistics=["gc", "gc_cds"], fasta=genome, gff=gff)
+results = pop.piSlice(windows=windows, statistics=["gc", "gc_codon"], fasta=genome, gff=gff)
 # Take times - TODO optimization
 
 

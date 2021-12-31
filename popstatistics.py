@@ -64,10 +64,10 @@ def piSlice(windows, statistics=[""], *args, **kwargs):
         windows["gc"] = estimates
 
 
-    if "gc_cds" in statistics:
+    if "gc_codon" in statistics:
         print("Process GC content with codon positions")
         # Compute GC content
-        estimates = windows.apply(lambda x: gc_cds(fasta,
+        estimates = windows.apply(lambda x: gc_codon(fasta,
                                              gff,
                                              x["Chromosome"],
                                              x["Start"],
@@ -78,7 +78,7 @@ def piSlice(windows, statistics=[""], *args, **kwargs):
         list_gc2 = [item[2] for item in estimates]
         list_gc3 = [item[3] for item in estimates]
         # Add column for statistics
-        windows["gc_cds"] = list_gc
+        windows["gc_codon"] = list_gc
         windows["gc1"] = list_gc1
         windows["gc2"] = list_gc2
         windows["gc3"] = list_gc3
@@ -148,7 +148,7 @@ def gc(sequence):
 
 
 # TODO Test gc_cds for GC1, GC2, GC3 contents
-def gc_cds(fasta, gff, chromosome, start, end):
+def gc_codon(fasta, gff, chromosome, start, end):
     """
     Estimate the fraction of G+C bases within CDS at codon positions 1, 2 and 3.
     Use a list of CDS features (start, end, frame, phase) to subset a list of DNA sequences
@@ -161,7 +161,7 @@ def gc_cds(fasta, gff, chromosome, start, end):
     :return: Numeric values of the global GC proportion in the sequence and
     GC proportion at each codon position in the sequence
     """
-    # TODO - gc_cds return GC for one sequence only
+    # TODO - gc_codon return GC for one sequence only
     # TODO - and use function piSlice to treat multiple sequences
     # GC of the full CDS is the GC content of all CDS regions, without subsetting by rank
     # Subset features
@@ -293,17 +293,17 @@ def gc_cds(fasta, gff, chromosome, start, end):
 
 
 def gc1(fasta, gff, chromosome, start, end):
-    gc1 = gc_cds(fasta, gff, chromosome, start, end)[1]
+    gc1 = gc_codon(fasta, gff, chromosome, start, end)[1]
     return gc1
 
 
 def gc2(fasta, gff, chromosome, start, end):
-    gc2 =  gc_cds(fasta, gff, chromosome, start, end)[2]
+    gc2 = gc_codon(fasta, gff, chromosome, start, end)[2]
     return gc2
 
 
 def gc3(fasta, gff, chromosome, start, end):
-    gc3 = gc_cds(fasta, gff, chromosome, start, end)[3]
+    gc3 = gc_codon(fasta, gff, chromosome, start, end)[3]
     return gc3
 
 
