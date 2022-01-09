@@ -7,9 +7,10 @@ Functions in this module are used to estimate population genomics statistics alo
 
 import pandas as pd
 from Bio.Seq import Seq
-import input
+import PiSlice.input as input
 from itertools import compress
 import numpy as np
+import mapply
 
 def piSlice(windows, statistics=[""], *args, **kwargs):
     """
@@ -24,6 +25,13 @@ def piSlice(windows, statistics=[""], *args, **kwargs):
     fasta = kwargs.get("fasta", "")
     gff = kwargs.get("gff", "")
     vcf = kwargs.get("vcf", "")
+    # Function to subset sequences in the fasta file
+    def make_dataset(windows, fasta):
+        # Sample sequences
+        # Sample all sequences from chromosomes and start-end positions
+        list_seq = list(windows.apply(lambda x: fasta.sample_sequence(x["Chromosome"], x["Start"], x["End"]), axis=1))
+        return(list_seq)
+
     # TODO A progress bar
     # Header
     print("Number of windows:", len(windows.index))
@@ -49,15 +57,7 @@ def piSlice(windows, statistics=[""], *args, **kwargs):
 
     if "gc" in statistics:
         print("Process GC content")
-        # Sample sequences
-        # Sample all sequences from chromosomes and start-end positions
-        list_seq = list(windows.apply(lambda x: fasta.sample_sequence(x["Chromosome"], x["Start"], x["End"]), axis=1))
-        # Take care of short sequences (< 6bp) that introduce errors below
-        # TODO must return a windows data frame of same size as input, with NA values
-        length_seq = list(map(lambda x: len(x), list_seq))
-        list_seq = list(compress(list_seq, list(map(lambda x: int(x) > 6, length_seq))))
-        windows = windows[list(map(lambda x: int(x) > 6, length_seq))]
-
+        list_seq = make_dataset(windows, fasta)
         # Compute GC content
         estimates = list(map(lambda x: gc(x), list_seq))
         # Add column for statistics
@@ -83,7 +83,16 @@ def piSlice(windows, statistics=[""], *args, **kwargs):
         windows["gc2"] = list_gc2
         windows["gc3"] = list_gc3
 
+    if "cpg" in statistics:
+        print("Process CpG densities")
+        list_seq = make_dataset(windows, fasta)
+        # Compute CpG density
+        estimates = list(map(lambda x: cpg(x), list_seq))
+        # Add column for statistics
+        windows["cpg"] = estimates
+
     return windows
+
 
 def gene_count(gff, chromosome, start, end):
     """
@@ -128,19 +137,22 @@ def gc(sequence):
     :param sequence: str, A string containing a DNA sequence
     :return: float, Numeric value of the GC proportion in the sequence
     """
-    # Make sequence uppercase for simple computation
-    sequence = sequence.upper()
-    base_a = sequence.count("A")
-    base_c = sequence.count("C")
-    base_g = sequence.count("G")
-    base_t = sequence.count("T")
-    try:
-        gc_content = (base_g + base_c)/(base_a + base_c + base_g + base_t)
-    except ZeroDivisionError:
+    if len(sequence) > 6:
+        # Make sequence uppercase for simple computation
+        sequence = sequence.upper()
+        base_a = sequence.count("A")
+        base_c = sequence.count("C")
+        base_g = sequence.count("G")
+        base_t = sequence.count("T")
+        try:
+            gc_content = (base_g + base_c)/(base_a + base_c + base_g + base_t)
+        except ZeroDivisionError:
+            gc_content = np.NaN
+        # Do not use the GC calculation from Biopython
+        # Because it does not deal with 'N' nucleotides
+        # gc_content = GC(sequence)/100
+    else:
         gc_content = np.NaN
-    # Do not use the GC calculation from Biopython
-    # Because it does not deal with 'N' nucleotides
-    # gc_content = GC(sequence)/100
     return gc_content
 
 
@@ -307,6 +319,22 @@ def gc3(fasta, gff, chromosome, start, end):
     return gc3
 
 
+def cpg(sequence):
+    """"
+    Estimate the CpG density as the number of CG sites divided by the total number of sites
+    (i.e. total number of nucleotides divided by two)
+    :param sequence: str, a fasta sequence
+    :return: float, a CpG density
+    """
+    if len(sequence) > 6:
+        sequence = sequence.upper()
+        if "CG" in sequence:
+            cpg_density = sequence.count('CG')/(len(sequence)/2)
+        else:
+            cpg_density = 0
+    else:
+        cpg_density = np.NaN
+    return(cpg_density)
 
 
 def pi(polymorphism):
