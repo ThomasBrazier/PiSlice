@@ -2,14 +2,16 @@
 ** DONE Min size of sequences set to 6bp, optional argument
    CLOSED: [2022-01-10 Mon 10:20]
 ** TODO Implement ambiguous bases in GC/CpG content
-** TODO Test for GC/CpG ambiguous bases N
-** TODO Test for GC/CpG N nucleotides
-** TODO CpG, take care of N nucleotides
+** TODO Test for GC/CpG ambiguous bases
+** DONE Test for GC/CpG N nucleotides
+   CLOSED: [2022-01-10 Mon 14:32]
+** DONE CpG, take care of N nucleotides
+   CLOSED: [2022-01-10 Mon 14:32]
 ** Codon usage bias
 
 * TODO Pop statistics
-** Pi, see https://github.com/ksamuk/pixy
-** Substituion rate/proportion
+** Pi, correct implementation, see https://github.com/ksamuk/pixy & https://github.com/RILAB/mop
+** Substitution rate/proportion
 ** Get synonymous/non-synonymous sites
 ** mu, local mutation rate, estimated by the four-fold synonymous substitution rate
 ** PiN/PiS (see https://github.com/chasewnelson/SNPGenie)
@@ -20,13 +22,14 @@
 * TODO Interface
 ** --header option if column names in the windows file (remove first row)
 ** --poplist "poplist" file with individuals/samples and associated population
-
+** TODO Treat GFF as a windows file to augment with statistics - input function to convert colnames to fit windows
+   
 * TODO Optimization
 ** Optimization of GFF parsing
 ** Logs
 ** Parse gff if no id/parent attribute
 ** Validate functions for input data (e.g. check type and dimension)
-** Parallel processing in pislice (mapply)
+** TODO Parallel processing in pislice (mapply)
 ** Splicing variants strategy (merge/keep, i.e. count as independent genes)
 ** CDS/transcript assembly
 ** Parse introns

@@ -119,9 +119,9 @@ pop.gc_codon(genome, gff, chromosome, start, end)
 # Create a data frame with all chromosomes full length (one chromosome per row)
 nb_chromosome = 5
 windows = pd.DataFrame({
-    'Chromosome': genome.references[0:nb_chromosome],
-    'Start': [1] * nb_chromosome,
-    'End': list(map(lambda x: len(genome.fetch(x)), genome.references[0:nb_chromosome]))
+    'seqname': genome.references[0:nb_chromosome],
+    'start': [1] * nb_chromosome,
+    'end': list(map(lambda x: len(genome.fetch(x)), genome.references[0:nb_chromosome]))
 })
 results = pop.piSlice(windows=windows, statistics=["gene_count", "gc", "gc_codon"], fasta=genome, gff=gff)
 results
@@ -139,9 +139,9 @@ results_rank3 = pop.piSlice(windows=windows, statistics=["gc", "gc_codon"], fast
 # TODO Take care of chromosome names, bug to fix when no sequence is found for a chromosome name
 gff_cds = gff[(gff['feature'] == "CDS") & (gff['seqname'].apply(lambda x: x in ["1","2","3","4","5","6","7","8","9","10"]))]
 windows = pd.DataFrame({
-    'Chromosome': list(gff_cds['seqname']),
-    'Start': list(gff_cds['start']),
-    'End': list(gff_cds['end'])
+    'seqname': list(gff_cds['seqname']),
+    'start': list(gff_cds['start']),
+    'end': list(gff_cds['end'])
 })
 results = pop.piSlice(windows=windows, statistics=["gc", "gc_codon"], fasta=genome, gff=gff)
 # Take times - TODO optimization

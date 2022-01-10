@@ -13,10 +13,10 @@ import numpy as np
 import mapply
 import re
 
-def piSlice(windows, statistics=[""], min_bp=6, *args, **kwargs):
+def piSlice(windows, statistics=[""], min_bp=6, n_cpus=6, *args, **kwargs):
     """
     The main function to return a data frame of population genomics statistics for a list of genomic windows.
-    :param windows: DataFrame, a 3 columns pandas data frame with chromosome, start, end
+    :param windows: DataFrame, a pandas data frame (can be gff) with at least three columns: seqname, start, end
     :param statistics: str, a list of statistics to compute
     :param **fasta: fasta, a fasta object with multiple fasta sequences
     :param **gff: DataFrame, a gff object
@@ -30,29 +30,29 @@ def piSlice(windows, statistics=[""], min_bp=6, *args, **kwargs):
     def make_dataset(windows, fasta):
         # Sample sequences
         # Sample all sequences from chromosomes and start-end positions
-        list_seq = list(windows.apply(lambda x: fasta.sample_sequence(x["Chromosome"], x["Start"], x["End"]), axis=1))
+        list_seq = list(windows.apply(lambda x: fasta.sample_sequence(x["seqname"], x["start"], x["end"]), axis=1))
         return(list_seq)
 
     # TODO A progress bar
     # Header
     print("Number of windows:", len(windows.index))
-    print("Chromosomes are", " ".join(windows.Chromosome.unique()))
+    print("Chromosomes are", " ".join(windows.seqname.unique()))
 
     if "gene_count" in statistics:
         print("Process number of genes")
         estimates = windows.apply(lambda x: gene_count(gff,
-                                             x["Chromosome"],
-                                             x["Start"],
-                                             x["End"]),
+                                             x["seqname"],
+                                             x["start"],
+                                             x["end"]),
                              axis=1)
         windows["gene_count"] = estimates
 
     if "snp_count" in statistics:
         print("Process number of SNPs")
         estimates = windows.apply(lambda x: snp_count(vcf,
-                                             x["Chromosome"],
-                                             x["Start"],
-                                             x["End"]),
+                                             x["seqname"],
+                                             x["start"],
+                                             x["end"]),
                              axis=1)
         windows["snp_count"] = estimates
 
@@ -68,11 +68,13 @@ def piSlice(windows, statistics=[""], min_bp=6, *args, **kwargs):
     if "gc_codon" in statistics:
         print("Process GC content with codon positions")
         # Compute GC content
+        mapply.init(n_workers=n_cpus)
         estimates = windows.apply(lambda x: gc_codon(fasta,
                                              gff,
-                                             x["Chromosome"],
-                                             x["Start"],
-                                             x["End"]),
+                                             x["seqname"],
+                                             x["start"],
+                                             x["end"],
+                                             min_bp=min_bp),
                              axis=1)
         list_gc = [item[0] for item in estimates]
         list_gc1 = [item[1] for item in estimates]
@@ -347,7 +349,8 @@ def cpg(sequence):
     if len(sequence) > 6:
         sequence = sequence.upper()
         if "CG" in sequence:
-            cpg_density = sequence.count('CG')/(len(sequence)/2)
+            seq_len = len(re.findall("[ATCGatcg]", sequence))
+            cpg_density = sequence.count('CG')/(seq_len/2)
         else:
             cpg_density = 0
     else:
