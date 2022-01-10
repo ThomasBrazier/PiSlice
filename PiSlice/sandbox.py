@@ -43,8 +43,9 @@ geno = input.genotype(variants, chromosome, start, end)
 # Import a fasta file
 #--------------------------------------------------------------------------------------
 # https://onestopdataanalysis.com/read-fasta-file-python/
-import input
-fasta_file = "data/Oryza_sativa_GCA_001433935.1/GCA_001433935.1_IRGSP-1.0_genomic.fna.gz"
+import PiSlice.input as input
+fasta_file = "PiSlice/data/Oryza_sativa_GCA_001433935.1/GCA_001433935.1_IRGSP-1.0_genomic.fna.gz"
+fasta_file = "PiSlice/data/Arabidopsis_thaliana_GCA_000001735.2/GCA_000001735.2_TAIR10.1_genomic.fna.gz"
 genome = input.fasta(fasta_file)
 
 # Explore the genome dataset
@@ -82,10 +83,10 @@ len(window)
 # Import a GFF annotation file
 #--------------------------------------------------------------------------------------
 import pandas as pd
-import input
-# gff_file = "data/Oryza_sativa_GCA_001433935.1/GCA_001433935.1_IRGSP-1.0_genomic.gff.gz"
-# gff_file = "data/Arabidopsis_thaliana_GCA_000001735.2/GCA_000001735.2_TAIR10.1_genomic.gff.gz"
-# gff = input.read_gff(gff_file)
+import PiSlice.input as input
+#gff_file = "PiSlice/data/Oryza_sativa_GCA_001433935.1/GCA_001433935.1_IRGSP-1.0_genomic.gff.gz"
+gff_file = "PiSlice/data/Arabidopsis_thaliana_GCA_000001735.2/GCA_000001735.2_TAIR10.1_genomic.gff.gz"
+gff = input.read_gff(gff_file)
 # gff = gff.gff.parse_attributes(infer_rank=True)
 
 # gff.gff.feature("gene")
@@ -94,13 +95,13 @@ import input
 # gff.gff.children("gene-AT1G01020")
 # gff.gff.rank(1)
 
-save_filename = "data/Oryza_sativa_GCA_001433935.1/GCA_001433935.1_IRGSP-1.0_genomic.csv.gz"
+save_filename = "PiSlice/data/Oryza_sativa_GCA_001433935.1/GCA_001433935.1_IRGSP-1.0_genomic.csv.gz"
 #save_filename = "data/Arabidopsis_thaliana_GCA_000001735.2/GCA_000001735.2_TAIR10.1_genomic.csv.gz"
 #input.write_gff2csv(gff, save_filename)
 gff = input.read_gff(save_filename)
 
 # Test statistics functions
-import popstatistics as pop
+import PiSlice.popstatistics as pop
 # Compute a single GC and GC1, GC2, GC3 (i.e. single sequence or list of sequences)
 chromosome = genome.references[0]
 sequence = genome.sample_chromosome(chromosome)

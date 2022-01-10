@@ -1,37 +1,48 @@
-# TODO
-* Min size of sequences set to 3bp, optional argument
-* Implement ambiguous bases in GC/CpG content
-* Test for GC/CpG ambiguous bases N
-* Test for GC/CpG N nucleotides
-* CpG, take care of N nucleotides
-* Pi, see https://github.com/ksamuk/pixy
-* Substituion rate/proportion
-* Get synonymous/non-synonymous sites
-* mu, local mutation rate, estimated by the four-fold synonymous substitution rate
-* --header option if column names in the windows file (remove first row)
-* --poplist "poplist" file with individuals/samples and associated population
-* PiN/PiS (see https://github.com/chasewnelson/SNPGenie)
-* dN/dS
-* Fst
-* Dxy
-* Codon usage bias
-* Optimization of GFF parsing
-* Logs
-* Parse gff if no id/parent attribute
-* Validate functions for input data (e.g. check type and dimension)
-* Parallel processing in pislice (mapply)
-* Splicing variants strategy (merge/keep, i.e. count as independent genes)
-* CDS/transcript assembly
-* Parse introns
-* Parse UTR (i.e. exon - CDS)
-* Handle score in gff
-* iPython Notebook for a tutorial of PiSlice
-* Gff, parse header comments in a metadata accessor
-* Vcf, parse header comments in a metadata accessor
+* TODO Genomics
+** DONE Min size of sequences set to 6bp, optional argument
+   CLOSED: [2022-01-10 Mon 10:20]
+** TODO Implement ambiguous bases in GC/CpG content
+** TODO Test for GC/CpG ambiguous bases N
+** TODO Test for GC/CpG N nucleotides
+** TODO CpG, take care of N nucleotides
+** Codon usage bias
 
-# DONE
-* GC
-* GC123
-* Gene count
-* CpG proportion
+* TODO Pop statistics
+** Pi, see https://github.com/ksamuk/pixy
+** Substituion rate/proportion
+** Get synonymous/non-synonymous sites
+** mu, local mutation rate, estimated by the four-fold synonymous substitution rate
+** PiN/PiS (see https://github.com/chasewnelson/SNPGenie)
+** dN/dS
+** Fst
+** Dxy
+
+* TODO Interface
+** --header option if column names in the windows file (remove first row)
+** --poplist "poplist" file with individuals/samples and associated population
+
+* TODO Optimization
+** Optimization of GFF parsing
+** Logs
+** Parse gff if no id/parent attribute
+** Validate functions for input data (e.g. check type and dimension)
+** Parallel processing in pislice (mapply)
+** Splicing variants strategy (merge/keep, i.e. count as independent genes)
+** CDS/transcript assembly
+** Parse introns
+** Parse UTR (i.e. exon - CDS)
+** Handle score in gff
+** iPython Notebook for a tutorial of PiSlice
+** Gff, parse header comments in a metadata accessor
+** Vcf, parse header comments in a metadata accessor
+
+* DONE
+** DONE GC
+   CLOSED: [2022-01-10 Mon 10:23]
+** DONE GC123
+   CLOSED: [2022-01-10 Mon 10:23]
+** DONE Gene count
+   CLOSED: [2022-01-10 Mon 10:23]
+** DONE CpG proportion
+   CLOSED: [2022-01-10 Mon 10:23]
 

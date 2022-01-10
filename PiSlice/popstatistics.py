@@ -11,8 +11,9 @@ import PiSlice.input as input
 from itertools import compress
 import numpy as np
 import mapply
+import re
 
-def piSlice(windows, statistics=[""], *args, **kwargs):
+def piSlice(windows, statistics=[""], min_bp=6, *args, **kwargs):
     """
     The main function to return a data frame of population genomics statistics for a list of genomic windows.
     :param windows: DataFrame, a 3 columns pandas data frame with chromosome, start, end
@@ -129,7 +130,7 @@ def snp_count(vcf, chromosome, start, end):
 
 
 
-def gc(sequence):
+def gc(sequence, min_bp=6):
     """
     Estimate the fraction of G+C bases in a DNA sequence.
     It reads a DNA sequence and count the number of G+C bases divided by the total number of bases.
@@ -137,7 +138,7 @@ def gc(sequence):
     :param sequence: str, A string containing a DNA sequence
     :return: float, Numeric value of the GC proportion in the sequence
     """
-    if len(sequence) > 6:
+    if len(sequence) > min_bp:
         # Make sequence uppercase for simple computation
         sequence = sequence.upper()
         base_a = sequence.count("A")
@@ -160,7 +161,7 @@ def gc(sequence):
 
 
 # TODO Test gc_cds for GC1, GC2, GC3 contents
-def gc_codon(fasta, gff, chromosome, start, end):
+def gc_codon(fasta, gff, chromosome, start, end, min_bp=6):
     """
     Estimate the fraction of G+C bases within CDS at codon positions 1, 2 and 3.
     Use a list of CDS features (start, end, frame, phase) to subset a list of DNA sequences
@@ -170,6 +171,7 @@ def gc_codon(fasta, gff, chromosome, start, end):
     :param chromosome: str, Chromosome name
     :param start: int, Start position of the sequence
     :param end: int, End position of the sequence
+    :param min_bp: int, the minimal number of nucleotides to consider a sequence
     :return: Numeric values of the global GC proportion in the sequence and
     GC proportion at each codon position in the sequence
     """
@@ -183,46 +185,62 @@ def gc_codon(fasta, gff, chromosome, start, end):
                (gff['start'] >= int(start)) &
                (gff['end'] <= int(end)) &
                (gff['feature'] == "CDS")]
-    # Sample sequences
-    # Sample all sequences from chromosomes and start-end positions
-    # Subset a list of DNA sequences according to features positions
-    # TODO verify the indexing 0-1 offset - A priori we are not good for maize, GC3 lower than GC1
-    list_seq = list(feat.apply(lambda x: fasta.sample_sequence(x["seqname"], x["start"], x["end"]), axis=1))
 
-    # Take care of short sequences (< 6bp) that introduce errors below
-    length_seq = list(feat.apply(lambda x: int(x['end']) - int(x['start']), axis=1))
-    feat = feat[list(map(lambda x: int(x) > 6, length_seq))]
-    list_seq = list(compress(list_seq, list(map(lambda x: int(x) > 6, length_seq))))
+    if (feat.shape[0] > 0):
+        # Sample sequences
+        # Sample all sequences from chromosomes and start-end positions
+        # Subset a list of DNA sequences according to features positions
+        list_seq = list(feat.apply(lambda x: fasta.sample_sequence(x["seqname"], x["start"], x["end"]), axis=1))
+        # Take care of short sequences (typically < 6bp) that introduce errors below
+        # Remove sequences shorter than the required number of nucleotides
+        # list_seq = list(map(lambda x: x.upper(), list_seq))
+        length_seq = list(map(lambda x: len(re.findall("[ATCGatcg]", x)), list_seq))
+        # Reduce the dataset
+        feat = feat.loc[list(map(lambda x: int(x) > min_bp, length_seq))]
+        list_seq = list(feat.apply(lambda x: fasta.sample_sequence(x["seqname"], x["start"], x["end"]), axis=1))
+        #list_seq = list(compress(list_seq, list(map(lambda x: int(x) > min_bp, length_seq))))
 
-    # debug purpose
-    # Verify that 1rst exon begins by start codon after reverse complement and frame shift
-    # list(map(lambda x: x[0:3], list_seq))
-    # Ok, it does verify
+        # debug purpose
+        # Verify that 1rst exon begins by start codon after reverse complement and frame shift
+        # list(map(lambda x: x[0:3], list_seq))
+        # Ok, it does verify
 
-    # Strand of the feature
-    # Reverse the DNA sequence if strand == "-"
-    strand = list(feat.apply(lambda x: x['strand'], axis=1))
-    for i, seq in enumerate(list_seq):
-        if strand[i] == "-":
-            list_seq[i] = seq[::-1]
-            # list_seq[i] = str(Seq(seq).reverse_complement())
+        if (feat.shape[0] > 0):
+            # Strand of the feature
+            # Reverse the DNA sequence if strand == "-"
+            strand = list(feat.apply(lambda x: x['strand'], axis=1))
+            for i, seq in enumerate(list_seq):
+                if strand[i] == "-":
+                    list_seq[i] = seq[::-1]
+                    # list_seq[i] = str(Seq(seq).reverse_complement())
 
-    # Phase of CDS features
-    # Remove 0, 1 or 2 bp at the beginning
-    frame = list(feat.apply(lambda x: x['frame'], axis=1))
-    for i, seq in enumerate(list_seq):
-        list_seq[i] = seq[int(frame[i])::]
+            # Phase of CDS features
+            # Remove 0, 1 or 2 bp at the beginning
+            frame = list(feat.apply(lambda x: x['frame'], axis=1))
+            for i, seq in enumerate(list_seq):
+                list_seq[i] = seq[int(frame[i])::]
 
-    # Split in three vectors of codon position
-    codons = "".join(map(lambda x: x[::], list_seq))
-    codon1 = "".join(map(lambda x: x[0::3], list_seq))
-    codon2 = "".join(map(lambda x: x[1::3], list_seq))
-    codon3 = "".join(map(lambda x: x[2::3], list_seq))
-    # Estimate GC content at each codon position
-    gc123 = gc(codons)
-    gc1 = gc(codon1)
-    gc2 = gc(codon2)
-    gc3 = gc(codon3)
+            # Split in three vectors of codon position
+            codons = "".join(map(lambda x: x[::], list_seq))
+            codon1 = "".join(map(lambda x: x[0::3], list_seq))
+            codon2 = "".join(map(lambda x: x[1::3], list_seq))
+            codon3 = "".join(map(lambda x: x[2::3], list_seq))
+            # Estimate GC content at each codon position
+            gc123 = gc(codons, min_bp=min_bp)
+            gc1 = gc(codon1, min_bp=min_bp)
+            gc2 = gc(codon2, min_bp=min_bp)
+            gc3 = gc(codon3, min_bp=min_bp)
+        else:
+            gc123 = np.NaN
+            gc1 = np.NaN
+            gc2 = np.NaN
+            gc3 = np.NaN
+    else:
+        gc123 = np.NaN
+        gc1 = np.NaN
+        gc2 = np.NaN
+        gc3 = np.NaN
+
     gc_content = (gc123, gc1, gc2, gc3)
     return gc_content
 

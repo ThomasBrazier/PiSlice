@@ -14,10 +14,31 @@ You can:
 Output to STDOUT or files.
 
 
-## Dependencies
+## Installation
 
-* 'pysam' to read fasta files and 'sammtools faidx' is a dependency of 'pysam'
-* 'cyvcf2' to read and manipulate population genetics dataset in vcf format
+### Dependencies
+
+* ‘pandas‘
+* ‘pysam‘ to read fasta files and ‘sammtools faidx‘ is a dependency of ‘pysam‘
+* ‘cyvcf2‘ to read and manipulate population genetics dataset in vcf format
+
+
+### Package
+
+PiSlice has a setup and can be installed locally with pip. Run the following command in the PiSlice git directory.
+
+‘‘‘
+pip install .
+‘‘‘
+
+Or
+
+‘‘‘
+pip install -e .
+‘‘‘
+
+to make it editable after installation.
+
 
 ## Data & Input
 
