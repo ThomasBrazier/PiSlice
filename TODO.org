@@ -8,6 +8,8 @@
 ** DONE CpG, take care of N nucleotides
    CLOSED: [2022-01-10 Mon 14:32]
 ** Codon usage bias
+** TODO Parse introns
+** TODO Parse UTR (i.e. exon - CDS)
 
 * TODO Pop statistics
 ** Pi, correct implementation, see https://github.com/ksamuk/pixy & https://github.com/RILAB/mop
@@ -22,7 +24,8 @@
 * TODO Interface
 ** --header option if column names in the windows file (remove first row)
 ** --poplist "poplist" file with individuals/samples and associated population
-** TODO Treat GFF as a windows file to augment with statistics - input function to convert colnames to fit windows
+** DONE Treat GFF as a windows file to augment with statistics: same column names
+   CLOSED: [2022-01-10 Mon 16:43]
    
 * TODO Optimization
 ** Optimization of GFF parsing
@@ -31,9 +34,6 @@
 ** Validate functions for input data (e.g. check type and dimension)
 ** TODO Parallel processing in pislice (mapply)
 ** Splicing variants strategy (merge/keep, i.e. count as independent genes)
-** CDS/transcript assembly
-** Parse introns
-** Parse UTR (i.e. exon - CDS)
 ** Handle score in gff
 ** iPython Notebook for a tutorial of PiSlice
 ** Gff, parse header comments in a metadata accessor

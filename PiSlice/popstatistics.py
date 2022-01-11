@@ -10,8 +10,9 @@ from Bio.Seq import Seq
 import PiSlice.input as input
 from itertools import compress
 import numpy as np
-import mapply
+#import mapply
 import re
+#from pandarallel import pandarallel
 
 def piSlice(windows, statistics=[""], min_bp=6, n_cpus=6, *args, **kwargs):
     """
@@ -26,6 +27,8 @@ def piSlice(windows, statistics=[""], min_bp=6, n_cpus=6, *args, **kwargs):
     fasta = kwargs.get("fasta", "")
     gff = kwargs.get("gff", "")
     vcf = kwargs.get("vcf", "")
+    #pandarallel.initialize(nb_workers=n_cpus, progress_bar=True)
+
     # Function to subset sequences in the fasta file
     def make_dataset(windows, fasta):
         # Sample sequences
@@ -68,7 +71,8 @@ def piSlice(windows, statistics=[""], min_bp=6, n_cpus=6, *args, **kwargs):
     if "gc_codon" in statistics:
         print("Process GC content with codon positions")
         # Compute GC content
-        mapply.init(n_workers=n_cpus)
+        # TODO Optim apply(), but fasta.sample_sequence() can not be parralelized
+        # impossible to reduce using cython
         estimates = windows.apply(lambda x: gc_codon(fasta,
                                              gff,
                                              x["seqname"],
