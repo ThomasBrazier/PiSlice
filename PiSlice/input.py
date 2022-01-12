@@ -18,6 +18,7 @@ from pandas import DataFrame
 import re
 import mapply
 import multiprocessing
+import intervaltree
 
 
 class vcf(VCF):
@@ -106,6 +107,33 @@ class fasta(FastaFile):
         # start - 1 because we work in 1-bp offset while python is 0-bp offset
         return self.fetch(chromosome, start - 1, end)
 
+    def sample_sequence_masked(self, chromosome, start, end, mask):
+        """
+        Sample a DNA sequence on a chromosome within start-end coordinates (bp)
+        on a 1-offset (sequence begins at 1) and mask regions given in 'mask'
+        :param chromosome: str, the name of the chromosome
+        :param start: int, start position in the sequence
+        :param end: int, end position in the sequence
+        :param mask: int, a list of tuples giving start-end coordinates of the region to mask
+        :return: A DNA sequence within boundaries start-end on a given chromosome (str)
+        """
+        masking_regions = intervaltree.IntervalTree.from_tuples(mask)
+        masking_regions.merge_overlaps(strict=False)
+        sampling_start = [start]
+        interval_start = [x.end for x in masking_regions]
+        interval_start.sort()
+        del interval_start[-1]
+        sampling_start = sampling_start + interval_start
+        sampling_end = [end]
+        interval_end = [x.begin for x in masking_regions]
+        interval_end.sort()
+        del interval_end[-1]
+        sampling_end = interval_end + sampling_end
+
+        subseq = [self.sample_sequence(chromosome, x, y) for x,y in zip(sampling_start, sampling_end)]
+        seq = "".join(subseq)
+
+        return seq
 
     def sample_feature(self, gff, feature, chromosome, start, end):
         """
@@ -139,7 +167,7 @@ class GffAccessor:
     #     if "latitude" not in obj.columns or "longitude" not in obj.columns:
     #         raise AttributeError("Must have 'latitude' and 'longitude'.")
 
-    def parse_attributes(self, infer_rank=False, n_cpus=0):
+    def parse_attributes(self, infer_rank=False, parse_introns=False, parse_utr=False, n_cpus=0):
         """
         Parse the column attributes of a gff
         :param gff: gff, a gff file based on Pandas DataFrame
@@ -210,6 +238,37 @@ class GffAccessor:
                 rk = 0
             return(rk)
 
+        if (parse_introns):
+            # Infer introns features
+            # Introns are sequences between two consecutive exons within the same gene
+            # They have a rank to infer subsequently
+            def intron(gff, gene_id):
+                """
+                Return a gff data frame with intron features of a given gene
+                :param gff: gff, the original gff dataframe
+                :param gene_id: str, a gen id
+                :return: pandas, a gff dataframe with introns features
+                """
+                subset = gff.gff.children(gene_id)
+                subset = subset.gff.feature("exon")
+                intron_start = subset["end"].sort_values()
+                intron_start = intron_start.drop(index=intron_start.index[-1])
+                intron_end = subset["start"].sort_values()
+                intron_end = intron_end.drop(index=intron_end.index[0])
+                gff_introns = subset.copy(deep=True)
+                gff_introns = gff_introns.drop(index=gff_introns.index[-1])
+                gff_introns["start"] = list(intron_start.astype(int))
+                gff_introns["end"] = list(intron_end.astype(int))
+                gff_introns = gff_introns.replace(['exon'], 'intron')
+                gff_introns.id = gff_introns.id.str.replace("exon", "intron", regex=True)
+                return(gff_introns)
+
+            # List of exon parents
+            list_parent = list(gff_obj.gff.feature("exon")["parent"].unique())
+            # Append the gff of new introns to the dataset
+            gff_obj = gff_obj.append(list(map(lambda x: intron(gff_obj, x), list_parent)))
+
+
         if (infer_rank):
             # # TODO optim at this step: long time for iterations
             # for i, a in gff_obj.iterrows():
@@ -228,12 +287,18 @@ class GffAccessor:
             #     rank[i] = int(rk)
             # TODO vectorization
             mapply.init(n_workers=n_cpus)
-            rank = gff_obj.mapply(lambda x: rank_inference(gff_obj, x) if x["feature"] in ["exon", "CDS"] else 0,
+            rank = gff_obj.mapply(lambda x: rank_inference(gff_obj, x) if x["feature"] in ["exon", "CDS", "intron"] else 0,
                                  axis=1)
         else:
             rank = [0] * gff_obj.shape[0]
-
         gff_obj["rank"] = rank
+
+        #if (parse_utr):
+            # Infer UTR features
+            # UTR sequences are beginning of the first exon or the end of the last exon (exon - CDS)
+        gff_obj.start = gff_obj.start.astype(int)
+        gff_obj.end = gff_obj.end.astype(int)
+
         return(gff_obj)
 
 
@@ -263,6 +328,10 @@ class GffAccessor:
         if (type(id) == str):
             id = [id]
         subset = self._obj[self._obj["parent"].isin(id)]
+        # Second order children, e.g. exons children of mRNA
+        recursive_id = subset["id"].to_string(index=False).replace(" ", "")
+        recursive_children = (self._obj[self._obj["parent"].isin([recursive_id])])
+        subset = subset.append(recursive_children)
         return(subset)
 
 

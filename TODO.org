@@ -8,9 +8,26 @@
 ** DONE CpG, take care of N nucleotides
    CLOSED: [2022-01-10 Mon 14:32]
 ** Codon usage bias
-** TODO Parse introns
+** Gene length
+** DONE GC non coding in windows
+   CLOSED: [2022-01-12 Wed 10:12]
+** DONE GC intergenic in windows
+   CLOSED: [2022-01-12 Wed 10:18]
+** DONE GC introns
+   CLOSED: [2022-01-12 Wed 10:48]
+** DONE Proportions of non-coding/intergenic in windows
+   CLOSED: [2022-01-12 Wed 10:48]
+** TODO Proportion of CDS in windows
+   ** TEST IT
+   ** Splicing variants strategy?
+** DONE GC123 returns 'nan' when not gene or CDS
+   CLOSED: [2022-01-11 Tue 19:04]
+** DONE Parse introns
+   CLOSED: [2022-01-11 Tue 18:51]
 ** TODO Parse UTR (i.e. exon - CDS)
+** How to consider splicing variants?
 
+   
 * TODO Pop statistics
 ** Pi, correct implementation, see https://github.com/ksamuk/pixy & https://github.com/RILAB/mop
 ** Substitution rate/proportion
@@ -26,6 +43,8 @@
 ** --poplist "poplist" file with individuals/samples and associated population
 ** DONE Treat GFF as a windows file to augment with statistics: same column names
    CLOSED: [2022-01-10 Mon 16:43]
+** Progress bars
+
    
 * TODO Optimization
 ** Optimization of GFF parsing
@@ -34,11 +53,18 @@
 ** Validate functions for input data (e.g. check type and dimension)
 ** TODO Parallel processing in pislice (mapply)
 ** Splicing variants strategy (merge/keep, i.e. count as independent genes)
-** Handle score in gff
+** Handle score in gff - filtering
 ** iPython Notebook for a tutorial of PiSlice
 ** Gff, parse header comments in a metadata accessor
 ** Vcf, parse header comments in a metadata accessor
 
+* Bugfix
+** DONE gff.children only returns the first child, not children of children
+   CLOSED: [2022-01-11 Tue 18:51]
+   TODO Tests
+
+
+   
 * DONE
 ** DONE GC
    CLOSED: [2022-01-10 Mon 10:23]

@@ -1,6 +1,43 @@
+
+# Debug
+import PiSlice.input as input
+fasta_file = "PiSlice/data/Oryza_sativa_GCA_001433935.1/GCA_001433935.1_IRGSP-1.0_genomic.fna.gz"
+fasta_file = "PiSlice/data/Arabidopsis_thaliana_GCA_000001735.2/GCA_000001735.2_TAIR10.1_genomic.fna.gz"
+genome = input.fasta(fasta_file)
 import pandas as pd
-import input
-import popstatistics as pop
+import PiSlice.input as input
+#gff_file = "PiSlice/data/Oryza_sativa_GCA_001433935.1/GCA_001433935.1_IRGSP-1.0_genomic.gff.gz"
+#gff_file = "PiSlice/data/Arabidopsis_thaliana_GCA_000001735.2/GCA_000001735.2_TAIR10.1_genomic.gff.gz"
+#gff = input.read_gff(gff_file)
+#gff = gff.gff.parse_attributes(infer_rank=False)
+#save_filename = "PiSlice/data/Oryza_sativa_GCA_001433935.1/GCA_001433935.1_IRGSP-1.0_genomic.csv.gz"
+save_filename = "PiSlice/data/Arabidopsis_thaliana_GCA_000001735.2/GCA_000001735.2_TAIR10.1_genomic.csv.gz"
+#input.write_gff2csv(gff, save_filename)
+gff = input.read_gff(save_filename)
+gff = gff.iloc[0:4000]
+gene_id = 'gene-AT1G01020'
+gene_id = "rna-gnl|JCVI|mRNA.AT1G01010.1"
+gff.gff.children(gene_id)
+
+gff_parsed = gff.gff.parse_attributes(infer_rank=True, parse_introns=True)
+
+import PiSlice.popstatistics as pop
+results = pop.piSlice(windows=gff_parsed, statistics=["gc", "gc_noncoding", "gc_codon"], fasta=genome, gff=gff)
+
+import PiSlice.popstatistics as pop
+chromosome = "CP002684.1"
+start = 3000
+end = 30000
+windows = pd.DataFrame({
+    'seqname': chromosome,
+    'start': [start],
+    'end': [end]
+})
+results = pop.piSlice(windows=windows, statistics=["gene_count", "gc", "gc_noncoding", "gc_intergenic", "gc_codon"], fasta=genome, gff=gff)
+
+gff_parsed = gff.gff.parse_attributes(infer_rank=True, parse_introns=True)
+results = pop.piSlice(windows=windows, statistics=["gene_count", "gc", "gc_noncoding", "gc_intergenic", "gc_codon", "gc_intron"], fasta=genome, gff=gff_parsed)
+
 
 # Input/output
 #--------------------------------------------------------------------------------------
@@ -87,7 +124,7 @@ import PiSlice.input as input
 #gff_file = "PiSlice/data/Oryza_sativa_GCA_001433935.1/GCA_001433935.1_IRGSP-1.0_genomic.gff.gz"
 gff_file = "PiSlice/data/Arabidopsis_thaliana_GCA_000001735.2/GCA_000001735.2_TAIR10.1_genomic.gff.gz"
 gff = input.read_gff(gff_file)
-# gff = gff.gff.parse_attributes(infer_rank=True)
+gff = gff.gff.parse_attributes(infer_rank=False)
 
 # gff.gff.feature("gene")
 # gff.gff.region(1,20000,"CP002684.1")
@@ -95,10 +132,13 @@ gff = input.read_gff(gff_file)
 # gff.gff.children("gene-AT1G01020")
 # gff.gff.rank(1)
 
-save_filename = "PiSlice/data/Oryza_sativa_GCA_001433935.1/GCA_001433935.1_IRGSP-1.0_genomic.csv.gz"
-#save_filename = "data/Arabidopsis_thaliana_GCA_000001735.2/GCA_000001735.2_TAIR10.1_genomic.csv.gz"
+#save_filename = "PiSlice/data/Oryza_sativa_GCA_001433935.1/GCA_001433935.1_IRGSP-1.0_genomic.csv.gz"
+save_filename = "PiSlice/data/Arabidopsis_thaliana_GCA_000001735.2/GCA_000001735.2_TAIR10.1_genomic.csv.gz"
 #input.write_gff2csv(gff, save_filename)
 gff = input.read_gff(save_filename)
+
+gff = gff.iloc[0:200]
+gene_id = 'gene-AT1G01010'
 
 # Test statistics functions
 import PiSlice.popstatistics as pop

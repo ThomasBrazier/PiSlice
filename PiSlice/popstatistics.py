@@ -13,8 +13,9 @@ import numpy as np
 #import mapply
 import re
 #from pandarallel import pandarallel
+import intervaltree
 
-def piSlice(windows, statistics=[""], min_bp=6, n_cpus=6, *args, **kwargs):
+def piSlice(windows, statistics=[""], min_bp=6, splicing_strategy="merge", n_cpus=6, *args, **kwargs):
     """
     The main function to return a data frame of population genomics statistics for a list of genomic windows.
     :param windows: DataFrame, a pandas data frame (can be gff) with at least three columns: seqname, start, end
@@ -67,6 +68,52 @@ def piSlice(windows, statistics=[""], min_bp=6, n_cpus=6, *args, **kwargs):
         # Add column for statistics
         windows["gc"] = estimates
 
+    if "gc_noncoding" in statistics:
+        print("Process non-coding GC content")
+        estimates = windows.apply(lambda x: gc_noncoding(fasta,
+                                             gff,
+                                             x["seqname"],
+                                             x["start"],
+                                             x["end"],
+                                             min_bp=min_bp),
+                             axis=1)
+        list_gc = [item[0] for item in estimates]
+        list_density = [item[1] for item in estimates]
+        # Add column for statistics
+        windows["gc_noncoding"] = list_gc
+        windows["noncoding_proportion"] = list_density
+
+    if "gc_intergenic" in statistics:
+        print("Process intergenic GC content")
+        estimates = windows.apply(lambda x: gc_intergenic(fasta,
+                                             gff,
+                                             x["seqname"],
+                                             x["start"],
+                                             x["end"],
+                                             min_bp=min_bp),
+                             axis=1)
+        list_gc = [item[0] for item in estimates]
+        list_density = [item[1] for item in estimates]
+        # Add column for statistics
+        windows["gc_intergenic"] = list_gc
+        windows["intergenic_proportion"] = list_density
+
+    if "gc_intron" in statistics:
+        print("Process intron GC content")
+        estimates = windows.apply(lambda x: gc_intron(fasta,
+                                             gff,
+                                             x["seqname"],
+                                             x["start"],
+                                             x["end"],
+                                             min_bp=min_bp,
+                                             splicing_strategy=splicing_strategy),
+                             axis=1)
+        list_gc = [item[0] for item in estimates]
+        list_density = [item[1] for item in estimates]
+        # Add column for statistics
+        windows["gc_intron"] = list_gc
+        windows["intron_proportion"] = list_density
+
 
     if "gc_codon" in statistics:
         print("Process GC content with codon positions")
@@ -84,11 +131,13 @@ def piSlice(windows, statistics=[""], min_bp=6, n_cpus=6, *args, **kwargs):
         list_gc1 = [item[1] for item in estimates]
         list_gc2 = [item[2] for item in estimates]
         list_gc3 = [item[3] for item in estimates]
+        list_cds_proportion = [item[4] for item in estimates]
         # Add column for statistics
         windows["gc_codon"] = list_gc
         windows["gc1"] = list_gc1
         windows["gc2"] = list_gc2
         windows["gc3"] = list_gc3
+        windows["cds_proportion"] = list_cds_proportion
 
     if "cpg" in statistics:
         print("Process CpG densities")
@@ -236,19 +285,129 @@ def gc_codon(fasta, gff, chromosome, start, end, min_bp=6):
             gc1 = gc(codon1, min_bp=min_bp)
             gc2 = gc(codon2, min_bp=min_bp)
             gc3 = gc(codon3, min_bp=min_bp)
+            cds_proportion = len(codons)/(end-start)
         else:
             gc123 = np.NaN
             gc1 = np.NaN
             gc2 = np.NaN
             gc3 = np.NaN
+            cds_proportion = np.NaN
     else:
         gc123 = np.NaN
         gc1 = np.NaN
         gc2 = np.NaN
         gc3 = np.NaN
+        cds_proportion = np.NaN
 
-    gc_content = (gc123, gc1, gc2, gc3)
+    gc_content = (gc123, gc1, gc2, gc3, cds_proportion)
     return gc_content
+
+
+def gc_noncoding(fasta, gff, chromosome, start, end, min_bp=6):
+    """
+    Estimate the fraction of G+C bases within non-coding sequences.
+    Use a list of CDS features (start, end, frame, phase) to subset a list of non-coding DNA sequences
+    :param fasta: str, A fasta object with the same coordinates as the gff
+    :param gff: DataFrame, A gff data frame
+    :param chromosome: str, Chromosome name
+    :param start: int, Start position of the sequence
+    :param end: int, End position of the sequence
+    :param min_bp: int, the minimal number of nucleotides to consider a sequence
+    :return: int, a tuple with the GC content in non-coding sequences and the proportion of non-coding sequence in the window
+    """
+    feat = gff[(gff['seqname'] == str(chromosome)) &
+               (gff['start'] >= int(start)) &
+               (gff['end'] <= int(end)) &
+               (gff['feature'] == "CDS")]
+    if (feat.shape[0] == 0):
+        noncoding_seq = fasta.sample_sequence(chromosome, start, end)
+        noncoding_prop = 1
+        gc_noncoding = gc(noncoding_seq, min_bp=min_bp)
+    elif (feat.shape[0] > 0):
+        # Masking regions
+        mask = [(x,y) for x,y in zip(list(feat.start), list(feat.end))]
+        # Sample sequences
+        seq = fasta.sample_sequence_masked(chromosome, start, end, mask)
+        gc_noncoding = gc(seq)
+        noncoding_prop = len(seq)/(end-start)
+    else:
+        gc_noncoding = np.NaN
+        noncoding_prop = np.NaN
+    return (gc_noncoding, noncoding_prop)
+
+
+def gc_intergenic(fasta, gff, chromosome, start, end, min_bp=6):
+    """
+    Estimate the fraction of G+C bases within intergenic sequences.
+    Use a list of gene features (start, end) to subset a list of intergenic DNA sequences
+    :param fasta: str, A fasta object with the same coordinates as the gff
+    :param gff: DataFrame, A gff data frame
+    :param chromosome: str, Chromosome name
+    :param start: int, Start position of the sequence
+    :param end: int, End position of the sequence
+    :param min_bp: int, the minimal number of nucleotides to consider a sequence
+    :return: int, a tuple with the GC content in intergenic sequences and the proportion of intergenic sequence in the window
+    """
+    feat = gff[(gff['seqname'] == str(chromosome)) &
+               (gff['start'] >= int(start)) &
+               (gff['end'] <= int(end)) &
+               (gff['feature'] == "gene")]
+    if (feat.shape[0] == 0):
+        noncoding_seq = fasta.sample_sequence(chromosome, start, end)
+        intergenic_prop = 1
+        gc_intergenic = gc(noncoding_seq, min_bp=min_bp)
+    elif (feat.shape[0] > 0):
+        # Masking regions
+        mask = [(x,y) for x,y in zip(list(feat.start), list(feat.end))]
+        # Sample sequences
+        seq = fasta.sample_sequence_masked(chromosome, start, end, mask)
+        gc_intergenic = gc(seq)
+        intergenic_prop = len(seq)/(end-start)
+    else:
+        gc_intergenic = np.NaN
+        intergenic_prop = np.NaN
+    return (gc_intergenic, intergenic_prop)
+
+
+
+def gc_intron(fasta, gff, chromosome, start, end, min_bp=6, splicing_strategy="merge"):
+    """
+    Estimate the fraction of G+C bases within intron sequences.
+    Use a list of intron features (start, end) to subset a list of intron DNA sequences
+    :param fasta: str, A fasta object with the same coordinates as the gff
+    :param gff: DataFrame, A gff data frame
+    :param chromosome: str, Chromosome name
+    :param start: int, Start position of the sequence
+    :param end: int, End position of the sequence
+    :param splicing_strategy: int, the minimal number of nucleotides to consider a sequence
+    :return: int, a tuple with the GC content in intron sequences and the proportion of intron sequence in the window
+    """
+    feat = gff[(gff['seqname'] == str(chromosome)) &
+               (gff['start'] >= int(start)) &
+               (gff['end'] <= int(end)) &
+               (gff['feature'] == "intron")]
+    if (feat.shape[0] == 0):
+        gc_intron = np.NaN
+        intron_prop = np.NaN
+    elif (feat.shape[0] > 0):
+        if (splicing_strategy == "merge"):
+            list_start = list(feat.start)
+            list_end = list(feat.end)
+            intervals = [(x,y) for x,y in zip(list_start, list_end)]
+            merge_splicing = intervaltree.IntervalTree.from_tuples(intervals)
+            list_start = [x.begin for x in merge_splicing]
+            list_end = [x.end for x in merge_splicing]
+        list_seq = [fasta.sample_sequence(chromosome, x, y) for x,y in zip(list_start, list_end)]
+        # Sample sequences
+        seq = "".join(list_seq)
+        gc_intron = gc(seq, min_bp)
+        intron_prop = len(seq)/(end-start)
+    else:
+        gc_intron = np.NaN
+        intron_prop = np.NaN
+    return (gc_intron, intron_prop)
+
+
 
 
 # def gc_cds_rank(fasta, gff, chromosome, start, end, rank=1):
