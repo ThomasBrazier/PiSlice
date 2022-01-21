@@ -363,7 +363,7 @@ class GffAccessor:
         """
 
 
-def read_gff(gff_file, parse=False):
+def read_gff(gff_file, parse=False, parse_introns=False, parse_utr=False):
     if (".gff" in gff_file):
         file = gzip.open(gff_file, 'r')
         gff = pandas.read_csv(file, sep="\t", comment="#", low_memory=False,
@@ -372,7 +372,7 @@ def read_gff(gff_file, parse=False):
         file.close()
         # Parse attributes
         if (parse):
-            gff = gff.gff.parse_attributes()
+            gff = gff.gff.parse_attributes(parse_introns=parse_introns, parse_utr=parse_utr)
         else:
             gff["id"] = None
             gff["parent"] = None
