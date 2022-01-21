@@ -25,8 +25,12 @@
 ** DONE Parse introns
    CLOSED: [2022-01-11 Tue 18:51]
 ** TODO Parse UTR (i.e. exon - CDS)
-** How to consider splicing variants?
+** TODO How to consider splicing variants?
 
+
+* TODO Testing
+** TODO Create a fake testing dataset
+** implement the set of tests
    
 * TODO Pop statistics
 ** Pi, correct implementation, see https://github.com/ksamuk/pixy & https://github.com/RILAB/mop
@@ -35,6 +39,7 @@
 ** mu, local mutation rate, estimated by the four-fold synonymous substitution rate
 ** PiN/PiS (see https://github.com/chasewnelson/SNPGenie)
 ** dN/dS
+** Tajima's D
 ** Fst
 ** Dxy
 

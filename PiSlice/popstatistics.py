@@ -285,7 +285,10 @@ def gc_codon(fasta, gff, chromosome, start, end, min_bp=6):
             gc1 = gc(codon1, min_bp=min_bp)
             gc2 = gc(codon2, min_bp=min_bp)
             gc3 = gc(codon3, min_bp=min_bp)
-            cds_proportion = len(codons)/(end-start)
+            try:
+                cds_proportion = len(codons)/(end-start)
+            except ZeroDivisionError:
+                cds_proportion = np.NaN
         else:
             gc123 = np.NaN
             gc1 = np.NaN
@@ -329,7 +332,10 @@ def gc_noncoding(fasta, gff, chromosome, start, end, min_bp=6):
         # Sample sequences
         seq = fasta.sample_sequence_masked(chromosome, start, end, mask)
         gc_noncoding = gc(seq)
-        noncoding_prop = len(seq)/(end-start)
+        try:
+            noncoding_prop = len(seq)/(end-start)
+        except ZeroDivisionError:
+            noncoding_prop = np.NaN
     else:
         gc_noncoding = np.NaN
         noncoding_prop = np.NaN
@@ -362,7 +368,10 @@ def gc_intergenic(fasta, gff, chromosome, start, end, min_bp=6):
         # Sample sequences
         seq = fasta.sample_sequence_masked(chromosome, start, end, mask)
         gc_intergenic = gc(seq)
-        intergenic_prop = len(seq)/(end-start)
+        try:
+            intergenic_prop = len(seq)/(end-start)
+        except ZeroDivisionError:
+            intergenic_prop = np.NaN
     else:
         gc_intergenic = np.NaN
         intergenic_prop = np.NaN
@@ -401,7 +410,10 @@ def gc_intron(fasta, gff, chromosome, start, end, min_bp=6, splicing_strategy="m
         # Sample sequences
         seq = "".join(list_seq)
         gc_intron = gc(seq, min_bp)
-        intron_prop = len(seq)/(end-start)
+        try:
+            intron_prop = len(seq)/(end-start)
+        except ZeroDivisionError:
+            intron_prop = np.NaN
     else:
         gc_intron = np.NaN
         intron_prop = np.NaN
