@@ -117,6 +117,8 @@ class fasta(FastaFile):
         :param mask: int, a list of tuples giving start-end coordinates of the region to mask
         :return: A DNA sequence within boundaries start-end on a given chromosome (str)
         """
+        # Take care of Null interval objects
+        mask = [(x, y) for x, y in mask if x != y]
         masking_regions = intervaltree.IntervalTree.from_tuples(mask)
         masking_regions.merge_overlaps(strict=False)
         sampling_start = [start]
