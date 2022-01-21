@@ -124,13 +124,15 @@ class fasta(FastaFile):
         sampling_start = [start]
         interval_start = [x.end for x in masking_regions]
         interval_start.sort()
-        del interval_start[-1]
-        sampling_start = sampling_start + interval_start
+        if len(interval_start) > 0:
+            del interval_start[-1]
+            sampling_start = sampling_start + interval_start
         sampling_end = [end]
         interval_end = [x.begin for x in masking_regions]
         interval_end.sort()
-        del interval_end[-1]
-        sampling_end = interval_end + sampling_end
+        if len(interval_end) > 0:
+            del interval_end[-1]
+            sampling_end = interval_end + sampling_end
 
         subseq = [self.sample_sequence(chromosome, x, y) for x,y in zip(sampling_start, sampling_end)]
         seq = "".join(subseq)
