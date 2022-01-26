@@ -261,6 +261,19 @@ def gc_codon(fasta, gff, chromosome, start, end, min_bp=6):
         # Ok, it does verify
 
         if (feat.shape[0] > 0):
+            # Merge overlapping coordinates to estimate CDS proportion properly
+            # in case of splicing variants and overlapping sequences
+            # Refactoring: use sample_sequence_masked to get CDS regions masked then p = 1 - q/l
+            # where p = proportion of CDS and q = length of sequence after masking CDS and l = total length of sequence
+            # Masking regions
+            mask = [(x, y) for x, y in zip(list(feat.start), list(feat.end))]
+            # Sample sequences
+            seq = fasta.sample_sequence_masked(chromosome, start, end, mask)
+            try:
+                cds_proportion = 1 - (len(seq) / (end - start))
+            except ZeroDivisionError:
+                cds_proportion = np.NaN
+
             # Strand of the feature
             # Reverse the DNA sequence if strand == "-"
             strand = list(feat.apply(lambda x: x['strand'], axis=1))
@@ -285,10 +298,6 @@ def gc_codon(fasta, gff, chromosome, start, end, min_bp=6):
             gc1 = gc(codon1, min_bp=min_bp)
             gc2 = gc(codon2, min_bp=min_bp)
             gc3 = gc(codon3, min_bp=min_bp)
-            try:
-                cds_proportion = len(codons)/(end-start)
-            except ZeroDivisionError:
-                cds_proportion = np.NaN
         else:
             gc123 = np.NaN
             gc1 = np.NaN

@@ -20,12 +20,14 @@
 ** TODO Proportion of CDS in windows
    ** TEST IT
    ** Splicing variants strategy?
+   ** Merge overlaps
 ** DONE GC123 returns 'nan' when not gene or CDS
    CLOSED: [2022-01-11 Tue 19:04]
 ** DONE Parse introns
    CLOSED: [2022-01-11 Tue 18:51]
 ** TODO Parse UTR (i.e. exon - CDS)
 ** TODO How to consider splicing variants?
+   ** Different strategies
 
 
 * TODO Testing
