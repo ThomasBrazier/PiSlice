@@ -21,6 +21,7 @@ Output to STDOUT or files.
 * ‘pandas‘
 * ‘pysam‘ to read fasta files and ‘sammtools faidx‘ is a dependency of ‘pysam‘
 * ‘cyvcf2‘ to read and manipulate population genetics dataset in vcf format
+* ‘htslib‘ for bgzipped fasta
 
 
 ### Package
@@ -46,16 +47,17 @@ The type of data depends on the statistic computed.
 
 Data:
 * Genomic data (i.e. DNA sequences) as a fasta file, bgzipped
-* Polymorphism data (i.e. SNPs), as a vcf file
+* Polymorphism data (i.e. SNPs), as a vcf file, gzipped
 * Annotation data, as a gff3 file, ncbi annotation format for parsing attributes
 
 Query:
 * a csv file with coordinates of genomic windows (chromosome, start, end)
+* a parsed gff, genomic statistics will be computed for each feature (i.e. row)
 
 A txt/csv file with genomic coordinates (chromosome, start, end in basepairs) is used as a template for genomic windows in which estimate the statistics.
 
 Depending on the statistics to compute, fasta, gff and vcf files will be processed.
-Genomic datasets must be indexed (faidx/tabix) and compressed with bgzip.
+Genomic datasets (fasta) must be indexed (faidx/tabix) and compressed with bgzip.
 
 ## Statistics
 
