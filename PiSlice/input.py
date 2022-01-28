@@ -387,7 +387,7 @@ def read_gff(gff_file, parse=False, parse_introns=False, parse_utr=False):
     return(gff)
 
 def write_gff2csv(gff, filename):
-    gff.to_csv(filename, sep="\t", compression="gzip", index=False)
+    gff.to_csv(filename, sep="\t", compression="gzip", index=False, na_rep="NA")
 
 # class gff(DataFrame):
 #     """

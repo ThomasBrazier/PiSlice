@@ -230,9 +230,6 @@ def gc_codon(fasta, gff, chromosome, start, end, min_bp=6):
     :return: Numeric values of the global GC proportion in the sequence and
     GC proportion at each codon position in the sequence
     """
-    # TODO - gc_codon return GC for one sequence only
-    # TODO - and use function piSlice to treat multiple sequences
-    # GC of the full CDS is the GC content of all CDS regions, without subsetting by rank
     # Subset features
     # exons contain UTR that can alter the frame shift
     # It is preferable to estimate GC content on CDS
@@ -242,7 +239,6 @@ def gc_codon(fasta, gff, chromosome, start, end, min_bp=6):
                (gff['feature'] == "CDS")]
 
     if (feat.shape[0] > 0):
-        # Sample sequences
         # Sample all sequences from chromosomes and start-end positions
         # Subset a list of DNA sequences according to features positions
         list_seq = list(feat.apply(lambda x: fasta.sample_sequence(x["seqname"], x["start"], x["end"]), axis=1))
@@ -253,12 +249,6 @@ def gc_codon(fasta, gff, chromosome, start, end, min_bp=6):
         # Reduce the dataset
         feat = feat.loc[list(map(lambda x: int(x) > min_bp, length_seq))]
         list_seq = list(feat.apply(lambda x: fasta.sample_sequence(x["seqname"], x["start"], x["end"]), axis=1))
-        #list_seq = list(compress(list_seq, list(map(lambda x: int(x) > min_bp, length_seq))))
-
-        # debug purpose
-        # Verify that 1rst exon begins by start codon after reverse complement and frame shift
-        # list(map(lambda x: x[0:3], list_seq))
-        # Ok, it does verify
 
         if (feat.shape[0] > 0):
             # Merge overlapping coordinates to estimate CDS proportion properly
