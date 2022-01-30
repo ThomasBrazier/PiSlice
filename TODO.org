@@ -3,6 +3,8 @@
    CLOSED: [2022-01-10 Mon 10:20]
 ** TODO Implement ambiguous bases in GC/CpG content
 ** TODO Test for GC/CpG ambiguous bases
+** TODO Gene length
+** TODO Number of exons
 ** DONE Test for GC/CpG N nucleotides
    CLOSED: [2022-01-10 Mon 14:32]
 ** DONE CpG, take care of N nucleotides
@@ -54,7 +56,7 @@
 
    
 * TODO Optimization
-** Optimization of GFF parsing
+** TODO Optimization of GFF parsing
 ** Logs
 ** Parse gff if no id/parent attribute
 ** Validate functions for input data (e.g. check type and dimension)
