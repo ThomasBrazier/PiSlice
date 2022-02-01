@@ -401,10 +401,11 @@ def gc_intron(fasta, gff, chromosome, start, end, min_bp=6, splicing_strategy="m
         if (splicing_strategy == "merge"):
             list_start = list(feat.start)
             list_end = list(feat.end)
-            intervals = [(x,y) for x,y in zip(list_start, list_end)]
-            merge_splicing = intervaltree.IntervalTree.from_tuples(intervals)
-            list_start = [x.begin for x in merge_splicing]
-            list_end = [x.end for x in merge_splicing]
+            if (len(list_start) > 1 & len(list_end) > 1):
+                intervals = [(x,y) for x,y in zip(list_start, list_end)]
+                merge_splicing = intervaltree.IntervalTree.from_tuples(intervals)
+                list_start = [x.begin for x in merge_splicing]
+                list_end = [x.end for x in merge_splicing]
         list_seq = [fasta.sample_sequence(chromosome, x, y) for x,y in zip(list_start, list_end)]
         # Sample sequences
         seq = "".join(list_seq)

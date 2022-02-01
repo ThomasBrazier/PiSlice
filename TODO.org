@@ -29,7 +29,12 @@
    CLOSED: [2022-01-11 Tue 18:51]
 ** TODO Parse UTR (i.e. exon - CDS)
 ** TODO How to consider splicing variants?
-   ** Different strategies
+   ** Different strategies - Merging, keep the best
+   ** best score
+   ** longest
+** Filter gff per score
+** Manage introns in UTR
+
 
 
 * TODO Testing
