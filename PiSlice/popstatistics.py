@@ -406,6 +406,10 @@ def gc_intron(fasta, gff, chromosome, start, end, min_bp=6, splicing_strategy="m
                 merge_splicing = intervaltree.IntervalTree.from_tuples(intervals)
                 list_start = [x.begin for x in merge_splicing]
                 list_end = [x.end for x in merge_splicing]
+            else:
+                # Inverse coordinates if sequence sin on "-" strand (i.e. start > end)
+                list_start = min(list_start, list_end)
+                list_end = min(list_start, list_end)
         list_seq = [fasta.sample_sequence(chromosome, x, y) for x,y in zip(list_start, list_end)]
         # Sample sequences
         seq = "".join(list_seq)
