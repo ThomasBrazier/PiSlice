@@ -105,6 +105,11 @@ class fasta(FastaFile):
         """
         # Chromosome can be either an integer (index) or a string (name)
         # start - 1 because we work in 1-bp offset while python is 0-bp offset
+        
+        # Verify that start-end positions are not inverted (start < end)
+        start = min(start, end)
+        end = max(start, end)
+
         return self.fetch(chromosome, start - 1, end)
 
     def sample_sequence_masked(self, chromosome, start, end, mask):
