@@ -98,6 +98,7 @@ Population genomics:
 * Genepop
 * gffread to extract CDS or exons
 * seqtk
+* WindowScanr: sliding window analysis in R https://github.com/tavareshugo/WindowScanR
 
 ## Code convention
 
