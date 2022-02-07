@@ -171,7 +171,7 @@ class GffAccessor:
     #     if "latitude" not in obj.columns or "longitude" not in obj.columns:
     #         raise AttributeError("Must have 'latitude' and 'longitude'.")
 
-    def parse_attributes(self, infer_rank=False, parse_introns=False, parse_utr=False, n_cpus=0):
+    def parse_attributes(self, infer_rank=False, parse_introns=False, parse_utr=False, n_cpus=8):
         """
         Parse the column attributes of a gff
         :param gff: gff, a gff file based on Pandas DataFrame
@@ -365,7 +365,7 @@ class GffAccessor:
         """
 
 
-def read_gff(gff_file, parse=False, parse_introns=False, parse_utr=False, infer_rank=False):
+def read_gff(gff_file, parse=False, parse_introns=False, parse_utr=False, infer_rank=False, n_cpus=8):
     if (".gff" in gff_file):
         file = gzip.open(gff_file, 'r')
         gff = pandas.read_csv(file, sep="\t", comment="#", low_memory=False,
@@ -374,7 +374,7 @@ def read_gff(gff_file, parse=False, parse_introns=False, parse_utr=False, infer_
         file.close()
         # Parse attributes
         if (parse):
-            gff = gff.gff.parse_attributes(parse_introns=parse_introns, parse_utr=parse_utr, infer_rank=infer_rank)
+            gff = gff.gff.parse_attributes(parse_introns=parse_introns, parse_utr=parse_utr, infer_rank=infer_rank, n_cpus=n_cpus)
         else:
             gff["id"] = None
             gff["parent"] = None
