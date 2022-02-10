@@ -260,7 +260,7 @@ def gc_codon(fasta, gff, chromosome, start, end, min_bp=6):
             # Sample sequences
             seq = fasta.sample_sequence_masked(chromosome, start, end, mask)
             try:
-                cds_proportion = 1 - abs(len(seq) / (end - start))
+                cds_proportion = 1 - abs(len(seq) / (end - start + 1))
             except ZeroDivisionError:
                 cds_proportion = np.NaN
 
