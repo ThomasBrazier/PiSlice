@@ -3,8 +3,9 @@
    CLOSED: [2022-01-10 Mon 10:20]
 ** TODO Implement ambiguous bases in GC/CpG content
 ** TODO Test for GC/CpG ambiguous bases
-** TODO Gene length
-** TODO Number of exons
+** TODO Gene length - bp
+** TODO Gene length - Number of exons
+** TODO Gene density
 ** DONE Test for GC/CpG N nucleotides
    CLOSED: [2022-01-10 Mon 14:32]
 ** DONE CpG, take care of N nucleotides
@@ -32,7 +33,7 @@
    ** Different strategies - Merging, keep the best
    ** best score
    ** longest
-** Filter gff per score
+** Filter gff per score, GT score
 ** Manage introns in UTR
 
 

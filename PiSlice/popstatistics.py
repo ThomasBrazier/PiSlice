@@ -51,6 +51,33 @@ def piSlice(windows, statistics=[""], min_bp=6, splicing_strategy="merge", n_cpu
                              axis=1)
         windows["gene_count"] = estimates
 
+    if "gene_length" in statistics:
+        print("Process mean gene length (bp)")
+        estimates = windows.apply(lambda x: gene_length(gff,
+                                             x["seqname"],
+                                             x["start"],
+                                             x["end"]),
+                             axis=1)
+        windows["gene_length"] = estimates
+
+    if "gene_nbexons" in statistics:
+        print("Process the mean number of exons")
+        estimates = windows.apply(lambda x: gene_nbexons(gff,
+                                             x["seqname"],
+                                             x["start"],
+                                             x["end"]),
+                             axis=1)
+        windows["gene_nbexons"] = estimates
+
+    if "gene_density" in statistics:
+        print("Process gene density")
+        estimates = windows.apply(lambda x: gene_density(gff,
+                                             x["seqname"],
+                                             x["start"],
+                                             x["end"]),
+                             axis=1)
+        windows["gene_density"] = estimates
+
     if "snp_count" in statistics:
         print("Process number of SNPs")
         estimates = windows.apply(lambda x: snp_count(vcf,
@@ -164,9 +191,75 @@ def gene_count(gff, chromosome, start, end):
                (gff['start'] < int(end)) &
                (gff['feature'] == "gene")]
     gene_count = len(gene_count)
-
     return gene_count
 
+def gene_length(gff, chromosome, start, end):
+    """
+    Estimate the mean gene length (bp) in the window
+    :param gff: DataFrame, a gff file with gene annotations
+    :param chromosome: str, Chromosome name
+    :param start: int, Start position of the sequence
+    :param end: int, End position of the sequence
+    :return: int, mean gene length
+    """
+    gene_count = gff[(gff['seqname'] == str(chromosome)) &
+               (gff['start'] >= int(start)) &
+               (gff['start'] < int(end)) &
+               (gff['feature'] == "gene")]
+    gene_len = gene_count['end'] - gene_count['start'] + 1
+    gene_len = np.mean(gene_len)
+    return gene_len
+
+def gene_nbexons(gff, chromosome, start, end):
+    """
+    Estimate the mean number of exons in genes
+    :param gff: DataFrame, a gff file with gene annotations, either parsed or will be parsed on the fly
+    :param chromosome: str, Chromosome name
+    :param start: int, Start position of the sequence
+    :param end: int, End position of the sequence
+    :return: int, mean number of exons per gene
+    """
+    genes = gff[(gff['seqname'] == str(chromosome)) &
+               (gff['start'] >= int(start)) &
+               (gff['start'] < int(end))]
+    genes = genes.reset_index()
+    if len(genes['rank'].unique()) == 1 & bool(genes['rank'].unique() == None):
+        genes = genes.gff.parse_attributes(infer_rank=True)
+    # Max rank for each gene
+    list_genes = genes['id'][genes['feature'] == "gene"]
+    def max_rank(gff, gene_id):
+        """
+        Return the max rank for a given gene id
+        """
+        # Get second order children (mRNA and exons)
+        children1 = genes.gff.children(gene_id)
+        children2 = genes.gff.children(children1["id"])
+        frames = [children1, children2]
+        result = pd.concat(frames)
+        max_rank = np.max(result["rank"])
+        return(max_rank)
+
+    gene_nbexons = list(list_genes.apply(lambda x: max_rank(genes, x)))
+    gene_nbexons = np.mean(gene_nbexons)
+    return(gene_nbexons)
+
+def gene_density(gff, chromosome, start, end):
+    """
+    Estimate gene density in the window (between 0 and 1)
+    :param gff: DataFrame, a gff file with gene annotations
+    :param chromosome: str, Chromosome name
+    :param start: int, Start position of the sequence
+    :param end: int, End position of the sequence
+    :return: int, gene density
+    """
+    gene_count = gff[(gff['seqname'] == str(chromosome)) &
+               (gff['start'] >= int(start)) &
+               (gff['start'] < int(end)) &
+               (gff['feature'] == "gene")]
+    gene_len = gene_count['end'] - gene_count['start'] + 1
+    gene_len = np.sum(gene_len)
+    gene_density = gene_len/(end - start + 1)
+    return gene_density
 
 
 def snp_count(vcf, chromosome, start, end):

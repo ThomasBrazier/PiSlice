@@ -183,6 +183,7 @@ class GffAccessor:
         :return: gff, a gff augmented with three columns for attibutes
         """
         gff_obj = self._obj.copy(deep=True)
+        gff_obj = gff_obj.reset_index() # Reset index to get continuous row indexes to iterate
         if (n_cpus == 0):
             n_cpus = multiprocessing.cpu_count()
         # Parse first the available information in the attribute field
