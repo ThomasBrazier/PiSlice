@@ -223,7 +223,7 @@ def gene_nbexons(gff, chromosome, start, end):
                (gff['start'] >= int(start)) &
                (gff['start'] < int(end))]
     genes = genes.reset_index()
-    if len(genes['rank'].unique()) == 1 & bool(genes['rank'].unique() == None):
+    if len(genes['rank'].unique()) == 1 & (bool(genes['rank'].unique() == None) | np.sum(genes['rank']) == 0):
         genes = genes.gff.parse_attributes(infer_rank=True)
     # Max rank for each gene
     list_genes = genes['id'][genes['feature'] == "gene"]

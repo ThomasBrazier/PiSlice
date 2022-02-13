@@ -26,8 +26,8 @@ results = pop.piSlice(windows=gff_parsed, statistics=["gc", "gc_noncoding", "gc_
 
 import PiSlice.popstatistics as pop
 chromosome = "CP002684.1"
-start = 3000
-end = 30000
+start = 100000
+end = 200000
 windows = pd.DataFrame({
     'seqname': chromosome,
     'start': [start],
