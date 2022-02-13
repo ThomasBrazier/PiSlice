@@ -3,15 +3,19 @@
    CLOSED: [2022-01-10 Mon 10:20]
 ** TODO Implement ambiguous bases in GC/CpG content
 ** TODO Test for GC/CpG ambiguous bases
-** TODO Gene length - bp
-** TODO Gene length - Number of exons
-** TODO Gene density
+** DONE Gene length - bp
+CLOSED: [2022-02-13 Sun 09:34]
+** DONE Gene length - Number of exons
+CLOSED: [2022-02-13 Sun 09:34]
+** DONE Gene density
+CLOSED: [2022-02-13 Sun 09:34]
 ** DONE Test for GC/CpG N nucleotides
    CLOSED: [2022-01-10 Mon 14:32]
 ** DONE CpG, take care of N nucleotides
    CLOSED: [2022-01-10 Mon 14:32]
 ** Codon usage bias
-** Gene length
+** TODO --seq option return the sequence sampled (beware, dataset set can be huge) -- mainly debug purpose or specific usage, otherwise use standard tools (vcftools, bedtools...)
+** TODO gff.children get second order children (i.e. children of children)
 ** DONE GC non coding in windows
    CLOSED: [2022-01-12 Wed 10:12]
 ** DONE GC intergenic in windows
@@ -20,7 +24,8 @@
    CLOSED: [2022-01-12 Wed 10:48]
 ** DONE Proportions of non-coding/intergenic in windows
    CLOSED: [2022-01-12 Wed 10:48]
-** TODO Proportion of CDS in windows
+** DONE Proportion of CDS in windows
+CLOSED: [2022-02-13 Sun 10:08]
    ** TEST IT
    ** Splicing variants strategy?
    ** Merge overlaps
@@ -33,8 +38,9 @@
    ** Different strategies - Merging, keep the best
    ** best score
    ** longest
-** Filter gff per score, GT score
+** TODO Filter gff per score, GT score
 ** Manage introns in UTR
+** TODO GC-ratio (A+T)/(G+C)
 
 
 
