@@ -232,8 +232,8 @@ def gene_nbexons(gff, chromosome, start, end):
         Return the max rank for a given gene id
         """
         # Get second order children (mRNA and exons)
-        children1 = genes.gff.children(gene_id)
-        children2 = genes.gff.children(children1["id"])
+        children1 = gff.gff.children(gene_id)
+        children2 = gff.gff.children(children1["id"])
         frames = [children1, children2]
         result = pd.concat(frames)
         max_rank = np.max(result["rank"])
