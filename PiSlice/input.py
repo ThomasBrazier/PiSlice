@@ -329,31 +329,35 @@ class GffAccessor:
                                 if "CDS" in children2["feature"].unique():
                                     # Two situations: either strand '+' or '-'
                                     # Get the CDS of the exon, and substract CDS to the exon to get UTR coordinates
-                                    if bool(children2["strand"].unique() == "-"):
-                                        cds5 = children2.loc[(children2["feature"] == "CDS") & (children2["rank"] == 1), :]
-                                        utr5 = children2.loc[(children2["feature"] == "exon") & (children2["start"] == int(cds5["start"])), :].copy()
-                                        utr5.loc[:, "start"] = int(cds5["end"])
-                                        utr5.loc[:, "feature"] = "utr5"
-                                        cds3 = children2.loc[(children2["feature"] == "CDS"), :]
-                                        cds3 = cds3.loc[cds3["rank"] == max(cds3["rank"]), :]
-                                        utr3 = children2.loc[(children2["feature"] == "exon") & (children2["end"] == int(cds3["end"])), :].copy()
-                                        utr3.loc[:, "end"] = int(cds3["start"])
-                                        utr3.loc[:, "feature"] = "utr3"
-                                    elif bool(children2["strand"].unique() == "+"):
-                                        cds5 = children2.loc[(children2["feature"] == "CDS") & (children2["rank"] == 1), :]
-                                        utr5 = children2.loc[(children2["feature"] == "exon") & (children2["end"] == int(cds5["end"])), :].copy()
-                                        utr5.loc[:, "end"] = int(cds5["start"])
-                                        utr5.loc[:, "feature"] = "utr5"
-                                        cds3 = children2.loc[(children2["feature"] == "CDS"), :]
-                                        cds3 = cds3.loc[cds3["rank"] == max(cds3["rank"]), :]
-                                        utr3 = children2.loc[(children2["feature"] == "exon") & (children2["start"] == int(cds3["start"])), :].copy()
-                                        utr3.loc[:, "start"] = int(cds3["end"])
-                                        utr3.loc[:, "feature"] = "utr3"
-                                    # Bind results at the end of the gff dataframe
-                                    gff_utr.append(utr5)
-                                    gff_utr.append(utr3)
+                                    try:
+                                        if bool(children2["strand"].unique() == "-"):
+                                            cds5 = children2.loc[(children2["feature"] == "CDS") & (children2["rank"] == 1), :]
+                                            utr5 = children2.loc[(children2["feature"] == "exon") & (children2["start"] == int(cds5["start"])), :].copy()
+                                            utr5.loc[:, "start"] = int(cds5["end"])
+                                            utr5.loc[:, "feature"] = "utr5"
+                                            cds3 = children2.loc[(children2["feature"] == "CDS"), :]
+                                            cds3 = cds3.loc[cds3["rank"] == max(cds3["rank"]), :]
+                                            utr3 = children2.loc[(children2["feature"] == "exon") & (children2["end"] == int(cds3["end"])), :].copy()
+                                            utr3.loc[:, "end"] = int(cds3["start"])
+                                            utr3.loc[:, "feature"] = "utr3"
+                                        elif bool(children2["strand"].unique() == "+"):
+                                            cds5 = children2.loc[(children2["feature"] == "CDS") & (children2["rank"] == 1), :]
+                                            utr5 = children2.loc[(children2["feature"] == "exon") & (children2["end"] == int(cds5["end"])), :].copy()
+                                            utr5.loc[:, "end"] = int(cds5["start"])
+                                            utr5.loc[:, "feature"] = "utr5"
+                                            cds3 = children2.loc[(children2["feature"] == "CDS"), :]
+                                            cds3 = cds3.loc[cds3["rank"] == max(cds3["rank"]), :]
+                                            utr3 = children2.loc[(children2["feature"] == "exon") & (children2["start"] == int(cds3["start"])), :].copy()
+                                            utr3.loc[:, "start"] = int(cds3["end"])
+                                            utr3.loc[:, "feature"] = "utr3"
+                                        # Bind results at the end of the gff dataframe
+                                        gff_utr.append(utr5)
+                                        gff_utr.append(utr3)
+                                    except ValueError:
+                                        print("Not possible to assess correct strand")
+                                        gff_utr = gff_obj.iloc[0:0].copy()
                         except:
-                            print("Not possible to parse UTR in gene: ", g)
+                            print("Not possible to parse UTR in gene")
                     elif "mRNA" not in children["feature"].unique():
                         # If no mRNA feature
                         try:
@@ -380,7 +384,8 @@ class GffAccessor:
                             gff_utr.append(utr5)
                             gff_utr.append(utr3)
                         except:
-                            print("Not possible to parse UTR in gene: ", g)
+                            print("Not possible to parse UTR in gene")
+                            gff_utr = gff_obj.iloc[0:0].copy()
                         try:
                             pd.concat(gff_utr)
                         except ValueError: # if nothing to concatenate
