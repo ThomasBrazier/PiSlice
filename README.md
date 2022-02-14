@@ -59,6 +59,15 @@ A txt/csv file with genomic coordinates (chromosome, start, end in basepairs) is
 Depending on the statistics to compute, fasta, gff and vcf files will be processed.
 Genomic datasets (fasta) must be indexed (faidx/tabix) and compressed with bgzip.
 
+### Fasta
+
+### GFF
+
+[![Canonical gene model according to the GFF3 specification](https://github.com/The-Sequence-Ontology/Specifications/blob/master/img/figure1.png)](https://github.com/The-Sequence-Ontology/Specifications/blob/master/gff3.md)
+
+### vcf
+
+
 ## Statistics
 
 Genomes:

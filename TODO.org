@@ -39,9 +39,9 @@ CLOSED: [2022-02-13 Sun 10:08]
    ** best score
    ** longest
 ** TODO Filter gff per score, GT score
-** Manage introns in UTR
+** Manage introns in UTR - Complicated task if not annotated
 ** TODO GC-ratio (A+T)/(G+C)
-
+** TODO Clean subset method for gff (gff.reset_index())
 
 
 * TODO Testing
