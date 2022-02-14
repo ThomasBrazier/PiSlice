@@ -381,7 +381,11 @@ class GffAccessor:
                             gff_utr.append(utr3)
                         except:
                             print("Not possible to parse UTR in gene: ", g)
-                    return(pd.concat(gff_utr))
+                        try:
+                            pd.concat(gff_utr)
+                        except ValueError: # if nothing to concatenate
+                            gff_utr = gff_obj.iloc[0:0].copy()
+                    return(gff_utr)
 
             # 5'UTR in first exon, 3'UTR in last exon, UTRs inherit attributes from their parent exon
             # Subset first and last exons for each gene/mRNA
