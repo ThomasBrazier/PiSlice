@@ -404,7 +404,11 @@ class GffAccessor:
             #mapply.init(n_workers=n_cpus)
             #utrs = list_genes.mapply(lambda x: utr_parse(gff_obj, x))
             #utrs = pd.concat(utrs)
-            gff_obj = gff_obj.append(utrs)
+            # Clean the list for NoneType
+            # TODO better handling of this error: utr_parse return NoneType
+            clean_utrs = list(filter(lambda x: x is not None, utrs))
+            #clean_utrs = [x for x in utrs if x is not None]
+            gff_obj = gff_obj.append(clean_utrs)
 
         gff_obj.start = gff_obj.start.astype(int)
         gff_obj.end = gff_obj.end.astype(int)
