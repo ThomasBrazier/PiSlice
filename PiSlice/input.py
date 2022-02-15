@@ -355,7 +355,7 @@ class GffAccessor:
                                         gff_utr.append(utr3)
                                     except ValueError:
                                         print("Not possible to assess correct strand")
-                                        gff_utr = gff_obj.iloc[0:0].copy()
+                                        gff_utr = [gff_obj.iloc[0:0].copy()] # Return an iterable, not a dataframe
                         except:
                             print("Not possible to parse UTR in gene")
                     elif "mRNA" not in children["feature"].unique():
@@ -385,7 +385,7 @@ class GffAccessor:
                             gff_utr.append(utr3)
                         except:
                             print("Not possible to parse UTR in gene")
-                            gff_utr = gff_obj.iloc[0:0].copy()
+                            gff_utr = [gff_obj.iloc[0:0].copy()]
                         try:
                             pd.concat(gff_utr)
                         except ValueError: # if nothing to concatenate
