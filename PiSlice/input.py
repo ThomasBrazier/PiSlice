@@ -190,6 +190,7 @@ class GffAccessor:
         id = [""] * gff_obj.shape[0]
         parent = [""] * gff_obj.shape[0]
         name = [""] * gff_obj.shape[0]
+        biotype = [""] * gff_obj.shape[0]
         for i, r in gff_obj.iterrows():
             a = r["attribute"]
             try:
@@ -224,9 +225,21 @@ class GffAccessor:
                 name[i] = name_term
             except:
                 name[i] = None
+
+            try:
+                biotype_term = re.findall(";gene_biotype=[A-Za-z0-9\\.\\-\\|\\_]*[;]*", a)[0]
+            except:
+                biotype_term = ""
+            biotype_term = biotype_term.replace(";", "")
+            biotype_term = biotype_term.replace("gene_biotype=", "")
+            try:
+                biotype[i] = biotype_term
+            except:
+                biotype[i] = None
         gff_obj["id"] = id
         gff_obj["parent"] = parent
         gff_obj["name"] = name
+        gff_obj["gene_biotype"] = biotype
 
         if (parse_introns):
             print("Parsing introns")
