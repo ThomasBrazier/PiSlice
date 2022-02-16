@@ -262,8 +262,8 @@ class GffAccessor:
                 intron_end = intron_end.drop(index=intron_end.index[0])
                 gff_introns = subset.copy(deep=True)
                 gff_introns = gff_introns.drop(index=gff_introns.index[-1])
-                gff_introns["start"] = list(intron_start.astype(int))
-                gff_introns["end"] = list(intron_end.astype(int))
+                gff_introns["start"] = list(intron_start.astype(int, errors='ignore'))
+                gff_introns["end"] = list(intron_end.astype(int, errors='ignore'))
                 gff_introns = gff_introns.replace(['exon'], 'intron')
                 gff_introns.id = gff_introns.id.str.replace("exon", "intron", regex=True)
                 return(gff_introns)
@@ -424,8 +424,8 @@ class GffAccessor:
             #clean_utrs = [x for x in utrs if x is not None]
             gff_obj = gff_obj.append(clean_utrs)
 
-        gff_obj.start = gff_obj.start.astype(int)
-        gff_obj.end = gff_obj.end.astype(int)
+        gff_obj.start = gff_obj.start.astype(int, errors='ignore') # Leave NA values as they are
+        gff_obj.end = gff_obj.end.astype(int, errors='ignore')
         return(gff_obj)
 
 
