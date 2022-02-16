@@ -15,7 +15,8 @@ CLOSED: [2022-02-13 Sun 09:34]
    CLOSED: [2022-01-10 Mon 14:32]
 ** Codon usage bias
 ** TODO --seq option return the sequence sampled (beware, dataset set can be huge) -- mainly debug purpose or specific usage, otherwise use standard tools (vcftools, bedtools...)
-** TODO gff.children get second order children (i.e. children of children)
+** DONE gff.children get second order children (i.e. children of children)
+CLOSED: [2022-02-14 Mon 11:04]
 ** DONE GC non coding in windows
    CLOSED: [2022-01-12 Wed 10:12]
 ** DONE GC intergenic in windows
@@ -33,7 +34,8 @@ CLOSED: [2022-02-13 Sun 10:08]
    CLOSED: [2022-01-11 Tue 19:04]
 ** DONE Parse introns
    CLOSED: [2022-01-11 Tue 18:51]
-** TODO Parse UTR (i.e. exon - CDS)
+** DONE Parse UTR (i.e. exon - CDS)
+CLOSED: [2022-02-14 Mon 11:04]
 ** TODO How to consider splicing variants?
    ** Different strategies - Merging, keep the best
    ** best score
@@ -49,6 +51,7 @@ CLOSED: [2022-02-13 Sun 10:08]
 ** implement the set of tests
    
 * TODO Pop statistics
+** Sgkit
 ** Pi, correct implementation, see https://github.com/ksamuk/pixy & https://github.com/RILAB/mop
 ** Substitution rate/proportion
 ** Get synonymous/non-synonymous sites
@@ -69,6 +72,8 @@ CLOSED: [2022-02-13 Sun 10:08]
    
 * TODO Optimization
 ** TODO Optimization of GFF parsing
+** Avoid Pandas - Optim with PyRanges
+** Save/import parsed gff in sql local database
 ** Logs
 ** Parse gff if no id/parent attribute
 ** Validate functions for input data (e.g. check type and dimension)

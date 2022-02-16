@@ -20,7 +20,8 @@ import mapply
 import multiprocessing
 import intervaltree
 
-
+# TODO Implement vcf import by sgkit
+# DEPRECATED
 class vcf(VCF):
     """
     Read a vcf file and return a 'vcf' object
@@ -457,9 +458,11 @@ class GffAccessor:
         # Second order children, e.g. exons children of mRNA
         if all:
             recursive_children = self._obj.gff.children(subset["id"], all=False)
-            #recursive_id = subset["id"].to_string(index=False).replace(" ", "")
-            #recursive_children = (self._obj[self._obj["parent"].isin([recursive_id])])
             subset = subset.append(recursive_children)
+            # Add one more level if children are found
+            if len(recursive_children) > 0:
+                recursive_children = self._obj.gff.children(subset["id"], all=False)
+                subset = subset.append(recursive_children)
         return(subset)
 
 
