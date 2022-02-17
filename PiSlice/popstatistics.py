@@ -210,6 +210,20 @@ def gene_length(gff, chromosome, start, end):
     gene_len = np.mean(gene_len)
     return gene_len
 
+
+def max_rank(gff, gene_id):
+    """
+    Return the max rank for a given gene id. Gff must be parsed for ranks
+    """
+    # Get second order children (mRNA and exons)
+    children = gff.gff.children(gene_id, all=True)
+    #children2 = gff.gff.children(children1["id"])
+    #frames = [children1, children2]
+    #result = pd.concat(frames)
+    max_rank = np.max(children["rank"])
+    return(max_rank)
+
+
 def gene_nbexons(gff, chromosome, start, end):
     """
     Estimate the mean number of exons in genes
@@ -221,24 +235,13 @@ def gene_nbexons(gff, chromosome, start, end):
     """
     genes = gff[(gff['seqname'] == str(chromosome)) &
                (gff['start'] >= int(start)) &
-               (gff['start'] < int(end))]
-    genes = genes.reset_index()
+               (gff['start'] < int(end))].copy()
+    #genes = genes.reset_index()
+    # If ranks have not been inferred
     if len(genes['rank'].unique()) == 1 & (bool(genes['rank'].unique() == None) | np.sum(genes['rank']) == 0):
         genes = genes.gff.parse_attributes(infer_rank=True)
     # Max rank for each gene
     list_genes = genes['id'][genes['feature'] == "gene"]
-    def max_rank(genes_gff, gene_id):
-        """
-        Return the max rank for a given gene id
-        """
-        # Get second order children (mRNA and exons)
-        children = gff.gff.children(gene_id, all=True)
-        #children2 = gff.gff.children(children1["id"])
-        #frames = [children1, children2]
-        #result = pd.concat(frames)
-        max_rank = np.max(children["rank"])
-        return(max_rank)
-
     gene_nbexons = list(list_genes.apply(lambda x: max_rank(genes, x)))
     gene_nbexons = np.mean(gene_nbexons)
     return(gene_nbexons)
