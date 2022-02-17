@@ -44,6 +44,8 @@ CLOSED: [2022-02-14 Mon 11:04]
 ** Manage introns in UTR - Complicated task if not annotated
 ** TODO GC-ratio (A+T)/(G+C)
 ** TODO Clean subset method for gff (gff.reset_index())
+** TODO mean exon length, mean intron length
+** TODO Length, simply the length of the sequence
 
 
 * TODO Testing

@@ -236,10 +236,8 @@ def gene_nbexons(gff, chromosome, start, end):
     genes = gff[(gff['seqname'] == str(chromosome)) &
                (gff['start'] >= int(start)) &
                (gff['start'] < int(end))].copy()
-    #genes = genes.reset_index()
-    # If ranks have not been inferred
-    if len(genes['rank'].unique()) == 1 & (bool(genes['rank'].unique() == None) | np.sum(genes['rank']) == 0):
-        genes = genes.gff.parse_attributes(infer_rank=True)
+    # TODO Parse only if ranks have not been inferred
+    genes = genes.gff.parse_attributes(infer_rank=True)
     # Max rank for each gene
     list_genes = genes['id'][genes['feature'] == "gene"]
     gene_nbexons = list(list_genes.apply(lambda x: max_rank(genes, x)))
