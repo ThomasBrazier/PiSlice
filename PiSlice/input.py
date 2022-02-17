@@ -184,14 +184,14 @@ class GffAccessor:
         :return: gff, a gff augmented with three columns for attibutes
         """
         gff_obj = self._obj.copy(deep=True)
-        gff_obj = gff_obj.reset_index() # Reset index to get continuous row indexes to iterate
+        #gff_obj = gff_obj.reset_index() # Reset index to get continuous row indexes to iterate
         if (n_cpus == 0):
             n_cpus = multiprocessing.cpu_count()
         # Parse first the available information in the attribute field
-        id = [""] * gff_obj.shape[0]
-        parent = [""] * gff_obj.shape[0]
-        name = [""] * gff_obj.shape[0]
-        biotype = [""] * gff_obj.shape[0]
+        # id = [""] * gff_obj.shape[0]
+        # parent = [""] * gff_obj.shape[0]
+        # name = [""] * gff_obj.shape[0]
+        # biotype = [""] * gff_obj.shape[0]
         for i, r in gff_obj.iterrows():
             a = r["attribute"]
             try:
@@ -201,9 +201,9 @@ class GffAccessor:
             id_name = id_name.replace(";", "")
             id_name = id_name.replace("ID=", "")
             try:
-                id[i] = id_name
+                gff_obj.id.iloc[i] = id_name
             except:
-                id[i] = None
+                gff_obj.id.iloc[i] = None
 
             try:
                 parent_term = re.findall(";Parent=[A-Za-z0-9\\.\\-\\|\\_]*;", a)[0]
@@ -212,9 +212,9 @@ class GffAccessor:
             parent_term = parent_term.replace(";", "")
             parent_term = parent_term.replace("Parent=", "")
             try:
-                parent[i] = parent_term
+                gff_obj.parent.iloc[i] = parent_term
             except:
-                parent[i] = None
+                gff_obj.parent.iloc[i] = None
 
             try:
                 name_term = re.findall(";Name=[A-Za-z0-9\\.\\-\\|\\_]*[;]*", a)[0]
@@ -223,9 +223,9 @@ class GffAccessor:
             name_term = name_term.replace(";", "")
             name_term = name_term.replace("Name=", "")
             try:
-                name[i] = name_term
+                gff_obj.name.iloc[i] = name_term
             except:
-                name[i] = None
+                gff_obj.name.iloc[i] = None
 
             try:
                 biotype_term = re.findall(";gene_biotype=[A-Za-z0-9\\.\\-\\|\\_]*[;]*", a)[0]
@@ -234,13 +234,13 @@ class GffAccessor:
             biotype_term = biotype_term.replace(";", "")
             biotype_term = biotype_term.replace("gene_biotype=", "")
             try:
-                biotype[i] = biotype_term
+                gff_obj.biotype.iloc[i] = biotype_term
             except:
-                biotype[i] = None
-        gff_obj["id"] = id
-        gff_obj["parent"] = parent
-        gff_obj["name"] = name
-        gff_obj["gene_biotype"] = biotype
+                gff_obj.biotype.iloc[i] = None
+        # gff_obj["id"] = id
+        # gff_obj["parent"] = parent
+        # gff_obj["name"] = name
+        # gff_obj["gene_biotype"] = biotype
 
         if (parse_introns):
             print("Parsing introns")
