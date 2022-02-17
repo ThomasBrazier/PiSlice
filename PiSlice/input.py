@@ -188,6 +188,11 @@ class GffAccessor:
         if (n_cpus == 0):
             n_cpus = multiprocessing.cpu_count()
         # Parse first the available information in the attribute field
+        # Create new columns
+        gff_obj["id"] = None
+        gff_obj["parent"] = None
+        gff_obj["name"] = None
+        gff_obj["gene_biotype"] = None
         # id = [""] * gff_obj.shape[0]
         # parent = [""] * gff_obj.shape[0]
         # name = [""] * gff_obj.shape[0]
