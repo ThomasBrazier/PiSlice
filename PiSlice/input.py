@@ -239,9 +239,9 @@ class GffAccessor:
             biotype_term = biotype_term.replace(";", "")
             biotype_term = biotype_term.replace("gene_biotype=", "")
             try:
-                gff_obj.biotype.iloc[i] = biotype_term
+                gff_obj.gene_biotype.iloc[i] = biotype_term
             except:
-                gff_obj.biotype.iloc[i] = None
+                gff_obj.gene_biotype.iloc[i] = None
         # gff_obj["id"] = id
         # gff_obj["parent"] = parent
         # gff_obj["name"] = name
