@@ -67,12 +67,12 @@ CLOSED: [2022-02-14 Mon 11:04]
 ** Dxy
 
 * TODO Interface
-** TODO print more log messages
+** TODO print more log messages & handle verbose mode on/off
 ** --header option if column names in the windows file (remove first row)
 ** --poplist "poplist" file with individuals/samples and associated population
 ** DONE Treat GFF as a windows file to augment with statistics: same column names
    CLOSED: [2022-01-10 Mon 16:43]
-** Progress bars
+** Handling progress bars
 
    
 * TODO Optimization

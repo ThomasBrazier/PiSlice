@@ -15,7 +15,7 @@ gff = input.read_gff(gff_file)
 #save_filename = "PiSlice/data/Arabidopsis_thaliana_GCA_000001735.2/GCA_000001735.2_TAIR10.1_genomic.csv.gz"
 #input.write_gff2csv(gff, save_filename)
 #gff = input.read_gff(save_filename)
-gff = gff.iloc[0:40000]
+gff = gff.iloc[0:4000]
 # gene_id = 'gene-AT1G01020'
 # gene_id = "rna-gnl|JCVI|mRNA.AT1G01010.1"
 # gff.gff.children(gene_id)
@@ -38,7 +38,9 @@ windows = pd.DataFrame({
     'start': [start],
     'end': [end]
 })
-results = pop.piSlice(windows=windows, statistics=["gene_count", "gc", "gc_noncoding", "gc_intergenic", "gc_codon", "gene_nbexons", "gene_length"], fasta=genome, gff=gff)
+results = pop.piSlice(windows=windows,
+                      statistics=["gene_count", "gc", "gc_noncoding", "gc_intergenic", "gc_codon", "gene_nbexons", "gene_length", "exon_length", "intron_length"],
+                      fasta=genome, gff=gff_parsed)
 
 gff_parsed = gff.gff.parse_attributes(infer_rank=True, parse_introns=True)
 results = pop.piSlice(windows=windows, statistics=["gene_count", "gc", "gc_noncoding", "gc_intergenic", "gc_codon", "gc_intron"], fasta=genome, gff=gff_parsed)

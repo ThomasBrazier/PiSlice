@@ -53,12 +53,33 @@ def piSlice(windows, statistics=[""], min_bp=6, splicing_strategy="merge", n_cpu
 
     if "gene_length" in statistics:
         print("Process mean gene length (bp)")
-        estimates = windows.apply(lambda x: gene_length(gff,
+        estimates = windows.apply(lambda x: feature_length(gff,
                                              x["seqname"],
                                              x["start"],
-                                             x["end"]),
+                                             x["end"],
+                                             feature="gene"),
                              axis=1)
         windows["gene_length"] = estimates
+
+    if "exon_length" in statistics:
+        print("Process mean exon length (bp)")
+        estimates = windows.apply(lambda x: feature_length(gff,
+                                             x["seqname"],
+                                             x["start"],
+                                             x["end"],
+                                             feature="exon"),
+                             axis=1)
+        windows["exon_length"] = estimates
+
+    if "intron_length" in statistics:
+        print("Process mean intron length (bp)")
+        estimates = windows.apply(lambda x: feature_length(gff,
+                                             x["seqname"],
+                                             x["start"],
+                                             x["end"],
+                                             feature="intron"),
+                             axis=1)
+        windows["intron_length"] = estimates
 
     if "gene_nbexons" in statistics:
         print("Process the mean number of exons")
@@ -193,22 +214,24 @@ def gene_count(gff, chromosome, start, end):
     gene_count = len(gene_count)
     return gene_count
 
-def gene_length(gff, chromosome, start, end):
+# DONE Factorize gene_length, exon_length, intron_length to a generic feature_length function
+def feature_length(gff, chromosome, start, end, feature="gene"):
     """
-    Estimate the mean gene length (bp) in the window
+    Estimate the mean length (bp) of a feature in the window
     :param gff: DataFrame, a gff file with gene annotations
     :param chromosome: str, Chromosome name
     :param start: int, Start position of the sequence
     :param end: int, End position of the sequence
-    :return: int, mean gene length
+    :param feature: str, the type of feature to sample
+    :return: int, mean feature length
     """
-    gene_count = gff[(gff['seqname'] == str(chromosome)) &
-               (gff['start'] >= int(start)) &
-               (gff['start'] < int(end)) &
-               (gff['feature'] == "gene")]
-    gene_len = gene_count['end'] - gene_count['start'] + 1
-    gene_len = np.mean(gene_len)
-    return gene_len
+    feat_count = gff[(gff['seqname'] == str(chromosome)) &
+                     (gff['start'] >= int(start)) &
+                     (gff['start'] < int(end)) &
+                     (gff['feature'] == feature)]
+    feat_len = feat_count['end'] - feat_count['start'] + 1
+    feat_len = np.mean(feat_len)
+    return feat_len
 
 
 def max_rank(gff, gene_id):
