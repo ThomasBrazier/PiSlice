@@ -177,7 +177,7 @@ class GffAccessor:
     #     if "latitude" not in obj.columns or "longitude" not in obj.columns:
     #         raise AttributeError("Must have 'latitude' and 'longitude'.")
 
-    def parse_attributes(self, infer_rank=False, parse_introns=False, parse_utr=False, n_cpus=8):
+    def parse_attributes(self, infer_rank=False, parse_introns=False, parse_utr=False, n_cpus=8, verbose=True):
         """
         Parse the column attributes of a gff
         :param gff: gff, a gff file based on Pandas DataFrame
@@ -192,7 +192,8 @@ class GffAccessor:
         if (n_cpus == 0):
             n_cpus = multiprocessing.cpu_count()
         # Parse first the available information in the attribute field
-        print("Parsing attributes")
+        if verbose:
+            print("Parsing attributes")
         for i, r in gff_obj.iterrows():
             a = r["attribute"]
             try:
@@ -244,7 +245,8 @@ class GffAccessor:
         # gff_obj["gene_biotype"] = biotype
 
         if (parse_introns):
-            print("Parsing introns")
+            if verbose:
+                print("Parsing introns")
             # Infer introns features
             # Introns are sequences between two consecutive exons within the same gene
             # They have a rank to infer subsequently
@@ -308,7 +310,8 @@ class GffAccessor:
             return(rk)
 
         if (infer_rank):
-            print("Inferring the rank of exons/CDS/introns")
+            if verbose:
+                print("Inferring the rank of exons/CDS/introns")
             # # TODO optim at this step: long time for iterations
             # for i, a in gff_obj.iterrows():
             #     if (a["feature"] in ["exon", "CDS"]):
@@ -326,8 +329,13 @@ class GffAccessor:
             #     rank[i] = int(rk)
             # TODO vectorization
             mapply.init(n_workers=n_cpus)
-            rank = gff_obj.mapply(lambda x: rank_inference(gff_obj, x) if x["feature"] in ["exon", "CDS", "intron"] else 0,
+            if verbose:
+                rank = gff_obj.mapply(lambda x: rank_inference(gff_obj, x) if x["feature"] in ["exon", "CDS", "intron"] else 0,
                                  axis=1)
+            else:
+                rank = gff_obj.mapply(
+                    lambda x: rank_inference(gff_obj, x) if x["feature"] in ["exon", "CDS", "intron"] else 0,
+                    axis=1, progressbar=False)
         else:
             rank = [0] * gff_obj.shape[0]
         gff_obj["rank"] = rank
@@ -337,7 +345,8 @@ class GffAccessor:
             # UTR sequences are beginning of the first exon or the end of the last exon (exon - CDS)
             # According to gff specifications, "UTRs, splice sites and translational start and stop sites.
             # These are implied by the combination of exon and CDS and do not need to be explicitly annotated as part of the canonical gene"
-            print("Parsing UTR regions")
+            if verbose:
+                print("Parsing UTR regions")
             list_genes = list(gff_obj.gff.feature("gene")["id"])
 
             def utr_transcript(gff_obj, mrna):
@@ -395,7 +404,7 @@ class GffAccessor:
                 """
                 Parse UTRs of each transcript in a gene and return a list of lists
                 """
-                print(gene)
+                #print(gene)
                 #ge = gff_obj.gff.id(gene)
                 children = gff_obj.gff.children(gene)
                 # Take of non coding genes
