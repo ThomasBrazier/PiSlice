@@ -22,12 +22,12 @@ gff = gff.iloc[0:4000]
 #gene="gene-AT1G01020"
 #gff_obj = gff.gff.parse_attributes(infer_rank=True, parse_introns=True, parse_utr=False)
 
-gff_parsed = gff.gff.parse_attributes(infer_rank=True, parse_introns=True, parse_utr=False)
+gff_parsed = gff.gff.parse_attributes(infer_rank=True, parse_introns=True, parse_utr=True)
 
-gff_parsed.gff.children("gene-AT1G01010")
-
-import PiSlice.popstatistics as pop
-results = pop.piSlice(windows=gff_parsed, statistics=["gc", "gc_noncoding", "gc_codon"], fasta=genome, gff=gff)
+# gff_parsed.gff.children("gene-AT1G01010")
+#
+# import PiSlice.popstatistics as pop
+# results = pop.piSlice(windows=gff_parsed, statistics=["gc", "gc_noncoding", "gc_codon"], fasta=genome, gff=gff)
 
 import PiSlice.popstatistics as pop
 chromosome = "CP002684.1"

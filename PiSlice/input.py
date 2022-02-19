@@ -328,7 +328,8 @@ class GffAccessor:
             #         rk = 0
             #     rank[i] = int(rk)
             # TODO vectorization
-            mapply.init(n_workers=n_cpus)
+            sensible_cpus = mapply.parallel.sensible_cpu_count()
+            mapply.init(n_workers=min(sensible_cpus, n_cpus))
             if verbose:
                 rank = gff_obj.mapply(lambda x: rank_inference(gff_obj, x) if x["feature"] in ["exon", "CDS", "intron"] else 0,
                                  axis=1)
