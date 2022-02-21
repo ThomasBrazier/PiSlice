@@ -312,21 +312,6 @@ class GffAccessor:
         if (infer_rank):
             if verbose:
                 print("Inferring the rank of exons/CDS/introns")
-            # # TODO optim at this step: long time for iterations
-            # for i, a in gff_obj.iterrows():
-            #     if (a["feature"] in ["exon", "CDS"]):
-            #         set = gff_obj.gff.children(a["parent"])
-            #         set = set.gff.feature(a["feature"])
-            #         if (a["strand"] == "+"):
-            #             # Rank: how many sequences of the same feature and parent are before that one?
-            #             rk = sum(bool(x) for x in [s <= int(a["start"]) for s in list(set["start"])])
-            #         elif (a["strand"] == "-"):
-            #             # Rank: how many sequences of the same feature and parent are after that one?
-            #             # Read in the opposite direction
-            #             rk = sum(bool(x) for x in [s >= int(a["start"]) for s in list(set["start"])])
-            #     else:
-            #         rk = 0
-            #     rank[i] = int(rk)
             # TODO vectorization
             sensible_cpus = mapply.parallel.sensible_cpu_count()
             mapply.init(n_workers=min(sensible_cpus, n_cpus))
@@ -624,7 +609,9 @@ def read_gff(gff_file, parse=False, parse_introns=False, parse_utr=False, infer_
     return(gff)
 
 def write_gff2csv(gff, filename):
-    gff.to_csv(filename, sep="\t", compression="gzip", index=False, na_rep="NA")
+    # Preserve column order
+    col = gff.columns
+    gff[col].to_csv(filename, sep="\t", compression="gzip", index=False, na_rep="NA", header=True, columns=col)
 
 # class gff(DataFrame):
 #     """
