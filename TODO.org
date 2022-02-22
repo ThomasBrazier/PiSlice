@@ -15,7 +15,8 @@ CLOSED: [2022-02-13 Sun 09:34]
 ** DONE CpG, take care of N nucleotides
    CLOSED: [2022-01-10 Mon 14:32]
 ** Codon usage bias
-** TODO --seq option return the sequence sampled (beware, dataset set can be huge) -- mainly debug purpose or specific usage, otherwise use standard tools (vcftools, bedtools...)
+** DONE --seq option return the sequence sampled (beware, dataset set can be huge) -- mainly debug purpose or specific usage, otherwise use standard tools (vcftools, bedtools...)
+CLOSED: [2022-02-22 Tue 21:16]
 ** DONE gff.children get second order children (i.e. children of children)
 CLOSED: [2022-02-14 Mon 11:04]
 ** DONE GC non coding in windows
@@ -44,9 +45,8 @@ CLOSED: [2022-02-14 Mon 11:04]
 ** TODO Filter gff per score, GT score
 ** Manage introns in UTR - Complicated task if not annotated
 ** TODO GC-ratio (A+T)/(G+C)
-** TODO Clean subset method for gff (gff.reset_index())
-** TODO mean exon length, mean intron length
-** TODO Length, simply the length of the sequence
+** DONE mean exon length, mean intron length
+CLOSED: [2022-02-22 Tue 10:17]
 ** See https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7222033/
 
 
@@ -73,12 +73,13 @@ CLOSED: [2022-02-14 Mon 11:04]
 ** DONE Treat GFF as a windows file to augment with statistics: same column names
    CLOSED: [2022-01-10 Mon 16:43]
 ** Handling progress bars
+** Validation: unique IDs in gff
 
    
 * TODO Optimization
 ** TODO Optimization of GFF parsing
-** Avoid Pandas - Optim with PyRanges
-** Save/import parsed gff in sql local database
+** Avoid Pandas - Optim with PyRanges and Dask arrays
+** Save/import parsed gff in sql local database for improved efficiency
 ** Logs
 ** Parse gff if no id/parent attribute
 ** Validate functions for input data (e.g. check type and dimension)

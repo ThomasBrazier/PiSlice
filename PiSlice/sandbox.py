@@ -9,6 +9,12 @@ import re
 import PiSlice.input as input
 #gff_file = "PiSlice/data/Oryza_sativa_GCA_001433935.1/GCA_001433935.1_IRGSP-1.0_genomic.gff.gz"
 gff_file = "PiSlice/data/Arabidopsis_thaliana_GCA_000001735.2/GCA_000001735.2_TAIR10.1_genomic.gff.gz"
+# gff_file = "PiSlice/data/Gossypium_hirsutum_HAU_G.hirsutum_AD1genome_v1.1.gff.gz"
+# gff_file = "PiSlice/data/Camellia_sinensis_GCA_013676235.1.gff.gz"
+# gff_file = "PiSlice/data/Capsella_rubella_GCA_000375325.1.gff.gz"
+# gff_file = "PiSlice/data/Citrus_sinensis_GCF_000317415.1.gff.gz"
+# gff_file = "PiSlice/data/Cucumis_sativus_GCA_000004075.2.gff.gz"
+# gff_file = "PiSlice/data/Cucurbita_maxima_Cmaxima_v1.1.gff.gz"
 gff = input.read_gff(gff_file)
 #gff = gff.gff.parse_attributes(infer_rank=False)
 #save_filename = "PiSlice/data/Oryza_sativa_GCA_001433935.1/GCA_001433935.1_IRGSP-1.0_genomic.csv.gz"
@@ -21,8 +27,15 @@ gff = gff.iloc[0:4000]
 # gff.gff.children(gene_id)
 #gene="gene-AT1G01020"
 #gff_obj = gff.gff.parse_attributes(infer_rank=True, parse_introns=True, parse_utr=False)
-
+gff_obj = gff
 gff_parsed = gff.gff.parse_attributes(infer_rank=True, parse_introns=True, parse_utr=True)
+
+# Test output function
+filename = "PiSlice/data/Arabidopsis_thaliana_GCA_000001735.2/GCA_000001735.2_TAIR10.1_genomic.csv.gz"
+filename = "PiSlice/data/Gossypium_hirsutum_HAU_G.hirsutum_AD1genome_v1.1.csv.gz"
+filename = "PiSlice/data/Camellia_sinensis_GCA_013676235.1.csv.gz"
+input.write_gff2csv(gff_parsed, filename)
+
 
 # gff_parsed.gff.children("gene-AT1G01010")
 #
@@ -39,7 +52,8 @@ windows = pd.DataFrame({
     'end': [end]
 })
 results = pop.piSlice(windows=windows,
-                      statistics=["gene_count", "gc", "gc_noncoding", "gc_intergenic", "gc_codon", "gene_nbexons", "gene_length", "exon_length", "intron_length"],
+                      statistics=["seq", "gene_count", "gc", "gc_noncoding", "gc_intergenic", "gc_codon",
+                                  "gene_nbexons", "gene_length", "exon_length", "intron_length"],
                       fasta=genome, gff=gff_parsed)
 
 gff_parsed = gff.gff.parse_attributes(infer_rank=True, parse_introns=True)

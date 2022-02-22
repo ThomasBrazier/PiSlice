@@ -195,6 +195,14 @@ def piSlice(windows, statistics=[""], min_bp=6, splicing_strategy="merge", n_cpu
         # Add column for statistics
         windows["cpg"] = estimates
 
+    if "seq" in statistics:
+        print("Retrieving sequences")
+        sequences = list(map(lambda x: fasta.sample_sequence(windows.loc[x, "seqname"],
+                                                             windows.loc[x, "start"],
+                                                             windows.loc[x, "end"]),
+                             windows.index))
+        windows["seq"] = sequences
+
     return windows
 
 

@@ -197,7 +197,7 @@ class GffAccessor:
         for i, r in gff_obj.iterrows():
             a = r["attribute"]
             try:
-                id_name = re.findall("ID=[A-Za-z0-9\\.\\-\\|\\_]*;", a)[0]
+                id_name = re.findall("ID=[A-Za-z0-9\\.\\-\\|\\_\\:]*;", a)[0]
             except:
                 id_name = ""
             id_name = id_name.replace(";", "")
@@ -208,7 +208,7 @@ class GffAccessor:
                 gff_obj.loc[i,"id"] = None
 
             try:
-                parent_term = re.findall(";Parent=[A-Za-z0-9\\.\\-\\|\\_]*;", a)[0]
+                parent_term = re.findall(";Parent=[A-Za-z0-9\\.\\-\\|\\_\\:]*[;]*", a)[0]
             except:
                 parent_term = ""
             parent_term = parent_term.replace(";", "")
@@ -219,7 +219,7 @@ class GffAccessor:
                 gff_obj.loc[i,"parent"] = None
 
             try:
-                name_term = re.findall(";Name=[A-Za-z0-9\\.\\-\\|\\_]*[;]*", a)[0]
+                name_term = re.findall(";Name=[A-Za-z0-9\\.\\-\\|\\_\\:]*[;]*", a)[0]
             except:
                 name_term = ""
             name_term = name_term.replace(";", "")
@@ -239,10 +239,10 @@ class GffAccessor:
                 gff_obj.loc[i,"gene_biotype"] = biotype_term
             except:
                 gff_obj.loc[i,"gene_biotype"] = None
-        # gff_obj["id"] = id
-        # gff_obj["parent"] = parent
-        # gff_obj["name"] = name
-        # gff_obj["gene_biotype"] = biotype
+
+        # Change "transcript" feature to "mRNA" -> consistency
+        gff_obj.loc[gff_obj["feature"] == "transcript", "feature"] = "mRNA"
+
 
         if (parse_introns):
             if verbose:
