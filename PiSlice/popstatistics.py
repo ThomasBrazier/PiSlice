@@ -258,7 +258,7 @@ def max_rank(gff, gene_id):
 def gene_nbexons(gff, chromosome, start, end):
     """
     Estimate the mean number of exons in genes
-    :param gff: DataFrame, a gff file with gene annotations, either parsed or will be parsed on the fly
+    :param gff: DataFrame, a gff file with gene annotations, must be parsed before
     :param chromosome: str, Chromosome name
     :param start: int, Start position of the sequence
     :param end: int, End position of the sequence
@@ -268,10 +268,11 @@ def gene_nbexons(gff, chromosome, start, end):
                (gff['start'] >= int(start)) &
                (gff['start'] < int(end))].copy()
     # TODO Parse only if ranks have not been inferred
-    genes = genes.gff.parse_attributes(infer_rank=True, verbose=False)
+    # genes = genes.gff.parse_attributes(infer_rank=True, verbose=False)
     # Max rank for each gene
     list_genes = genes['id'][genes['feature'] == "gene"]
     gene_nbexons = list(list_genes.apply(lambda x: max_rank(genes, x)))
+    # mean = 0 if ranks have not been inferred before
     gene_nbexons = np.mean(gene_nbexons)
     return(gene_nbexons)
 
