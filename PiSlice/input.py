@@ -447,7 +447,8 @@ class GffAccessor:
             # Subset first and last exons for each gene/mRNA
             list_genes = list(gff_obj.loc[(gff_obj["feature"] == "gene"), "id"])
             #list_genes = gff_obj.loc[(gff_obj["feature"] == "gene"), "id"]
-            utrs = [utr_parse(gff_obj, x) for x in list_genes]
+            #utrs = [utr_parse(gff_obj, x) for x in list_genes]
+            utrs = list(map(lambda x: utr_parse(gff_obj, x), list_genes))
             #mapply.init(n_workers=n_cpus)
             #utrs = list_genes.mapply(lambda x: utr_parse(gff_obj, x))
             #utrs = pd.concat(utrs)
