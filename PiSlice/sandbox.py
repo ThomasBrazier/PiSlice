@@ -1,5 +1,6 @@
 
 # Debug
+import time
 import PiSlice.input as input
 fasta_file = "PiSlice/data/Oryza_sativa_GCA_001433935.1/GCA_001433935.1_IRGSP-1.0_genomic.fna.gz"
 fasta_file = "PiSlice/data/Arabidopsis_thaliana_GCA_000001735.2/GCA_000001735.2_TAIR10.1_genomic.fna.gz"
@@ -28,7 +29,12 @@ gff = gff.iloc[0:4000]
 #gene="gene-AT1G01020"
 #gff_obj = gff.gff.parse_attributes(infer_rank=True, parse_introns=True, parse_utr=False)
 gff_obj = gff
+
+t1 = time.time()
 gff_parsed = gff.gff.parse_attributes(infer_rank=True, parse_introns=True, parse_utr=True)
+t2 = time.time()
+t = t2-t1
+t # 19.4988; 14.747; 11.794
 
 # Test output function
 filename = "PiSlice/data/Arabidopsis_thaliana_GCA_000001735.2/GCA_000001735.2_TAIR10.1_genomic.csv.gz"

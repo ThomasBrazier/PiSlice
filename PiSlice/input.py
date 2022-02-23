@@ -194,51 +194,88 @@ class GffAccessor:
         # Parse first the available information in the attribute field
         if verbose:
             print("Parsing attributes")
-        for i, r in gff_obj.iterrows():
-            a = r["attribute"]
-            try:
-                id_name = re.findall("ID=[A-Za-z0-9\\.\\-\\|\\_\\:]*;", a)[0]
-            except:
-                id_name = ""
-            id_name = id_name.replace(";", "")
-            id_name = id_name.replace("ID=", "")
-            try:
-                gff_obj.loc[i,"id"] = id_name
-            except:
-                gff_obj.loc[i,"id"] = None
 
+        # TODO Vectorize
+        attr = gff_obj["attribute"].astype(str)
+        def find_attribute(s, category="Name"):
+            """
+            Find the attribute with the 'category' in a string
+            """
             try:
-                parent_term = re.findall(";Parent=[A-Za-z0-9\\.\\-\\|\\_\\:]*[;]*", a)[0]
+                attribute = re.findall("[;]*" + category + "=[A-Za-z0-9\\.\\-\\|\\_\\:]*[;]*", s)[0]
             except:
-                parent_term = ""
-            parent_term = parent_term.replace(";", "")
-            parent_term = parent_term.replace("Parent=", "")
-            try:
-                gff_obj.loc[i,"parent"] = parent_term
-            except:
-                gff_obj.loc[i,"parent"] = None
+                attribute = ""
+            attribute = attribute.replace(";", "")
+            attribute = attribute.replace(category + "=", "")
+            return(attribute)
 
-            try:
-                name_term = re.findall(";Name=[A-Za-z0-9\\.\\-\\|\\_\\:]*[;]*", a)[0]
-            except:
-                name_term = ""
-            name_term = name_term.replace(";", "")
-            name_term = name_term.replace("Name=", "")
-            try:
-                gff_obj.loc[i,"name"] = name_term
-            except:
-                gff_obj.loc[i,"name"] = None
+        id_attr = list(map(lambda x: find_attribute(x, category="ID"), attr))
+        try:
+            gff_obj["id"] = id_attr
+        except:
+            gff_obj["id"] = None
+        name_attr = list(map(lambda x: find_attribute(x, category="Name"), attr))
+        try:
+            gff_obj["name"] = name_attr
+        except:
+            gff_obj["name"] = None
+        parent_attr = list(map(lambda x: find_attribute(x, category="Parent"), attr))
+        try:
+            gff_obj["parent"] = parent_attr
+        except:
+            gff_obj["parent"] = None
+        biotype_attr = list(map(lambda x: find_attribute(x, category="gene_biotype"), attr))
+        try:
+            gff_obj["gene_biotype"] = biotype_attr
+        except:
+            gff_obj["gene_biotype"] = None
 
-            try:
-                biotype_term = re.findall(";gene_biotype=[A-Za-z0-9\\.\\-\\|\\_]*[;]*", a)[0]
-            except:
-                biotype_term = ""
-            biotype_term = biotype_term.replace(";", "")
-            biotype_term = biotype_term.replace("gene_biotype=", "")
-            try:
-                gff_obj.loc[i,"gene_biotype"] = biotype_term
-            except:
-                gff_obj.loc[i,"gene_biotype"] = None
+
+        # for i, r in gff_obj.iterrows():
+        #     a = r["attribute"]
+        #     try:
+        #         id_name = re.findall("ID=[A-Za-z0-9\\.\\-\\|\\_\\:]*;", a)[0]
+        #     except:
+        #         id_name = ""
+        #     id_name = id_name.replace(";", "")
+        #     id_name = id_name.replace("ID=", "")
+        #     try:
+        #         gff_obj.loc[i,"id"] = id_name
+        #     except:
+        #         gff_obj.loc[i,"id"] = None
+        #
+        #     try:
+        #         parent_term = re.findall(";Parent=[A-Za-z0-9\\.\\-\\|\\_\\:]*[;]*", a)[0]
+        #     except:
+        #         parent_term = ""
+        #     parent_term = parent_term.replace(";", "")
+        #     parent_term = parent_term.replace("Parent=", "")
+        #     try:
+        #         gff_obj.loc[i,"parent"] = parent_term
+        #     except:
+        #         gff_obj.loc[i,"parent"] = None
+        #
+        #     try:
+        #         name_term = re.findall(";Name=[A-Za-z0-9\\.\\-\\|\\_\\:]*[;]*", a)[0]
+        #     except:
+        #         name_term = ""
+        #     name_term = name_term.replace(";", "")
+        #     name_term = name_term.replace("Name=", "")
+        #     try:
+        #         gff_obj.loc[i,"name"] = name_term
+        #     except:
+        #         gff_obj.loc[i,"name"] = None
+        #
+        #     try:
+        #         biotype_term = re.findall(";gene_biotype=[A-Za-z0-9\\.\\-\\|\\_]*[;]*", a)[0]
+        #     except:
+        #         biotype_term = ""
+        #     biotype_term = biotype_term.replace(";", "")
+        #     biotype_term = biotype_term.replace("gene_biotype=", "")
+        #     try:
+        #         gff_obj.loc[i,"gene_biotype"] = biotype_term
+        #     except:
+        #         gff_obj.loc[i,"gene_biotype"] = None
 
         # Change "transcript" feature to "mRNA" -> consistency
         gff_obj.loc[gff_obj["feature"] == "transcript", "feature"] = "mRNA"
@@ -390,111 +427,21 @@ class GffAccessor:
                 """
                 Parse UTRs of each transcript in a gene and return a list of lists
                 """
-                #print(gene)
-                #ge = gff_obj.gff.id(gene)
                 children = gff_obj.gff.children(gene)
-                # Take of non coding genes
+                # Take care of non coding genes
                 if ("CDS" not in children["feature"].unique()):
                     return(None)
                 if ("mRNA" in children["feature"].unique()):
                     ids = children.loc[(children["feature"] == "mRNA"), "id"]
                 else:
                     ids = gene
-
                 res = list(map(lambda x: utr_transcript(gff_obj, x), ids))
                 res_utr = pd.concat(res)
+                res_utr["rank"] = 0
                 return(res_utr)
 
-            utrs = list(map(lambda x: utr_parse(gff_obj, x), list_genes))
-            gff_obj = gff_obj.append(utrs)
-
-
-
-
-
-                # if mRNA (transcript), then parse each transcript
-
-                #utr = pd.DataFrame(zip(*[ge for i in range(2)])).T.copy()
-
-                # Require a CDS and an exon to parse
-                # Strict conditions for parsing UTR in a gene
-                # - gene must have CDS + exon
-                # - mRNA must have CDS + exon
-                # if ("CDS" in children["feature"].unique()) & ("exon" in children["feature"].unique()):
-                #     gff_utr = []
-                #     # If more than one splicing variant (mRNA)
-                #     if "mRNA" in children["feature"].unique():
-                #         try:
-                #             for sv in children.loc[(children["feature"] == "mRNA"), "id"]:
-                #                 # Take the first CDS (as exons are not all coding due to alternative splicing)
-                #                 # Take the exon which contains CDS 1
-                #                 children2 = children.gff.children(sv)
-                #                 if ("CDS" in children2["feature"].unique()) & ("exon" in children2["feature"].unique()):
-                #                     # Two situations: either strand '+' or '-'
-                #                     # Get the CDS of the exon, and substract CDS to the exon to get UTR coordinates
-                #                     try:
-                #                         if bool(children2["strand"].unique() == "-"):
-                #                             cds5 = children2.loc[(children2["feature"] == "CDS") & (children2["rank"] == 1), :]
-                #                             utr5 = children2.loc[(children2["feature"] == "exon") & (children2["start"] == int(cds5["start"])), :].copy()
-                #                             utr5.loc[:, "start"] = int(cds5["end"])
-                #                             utr5.loc[:, "feature"] = "utr5"
-                #                             cds3 = children2.loc[(children2["feature"] == "CDS"), :]
-                #                             cds3 = cds3.loc[cds3["rank"] == max(cds3["rank"]), :]
-                #                             utr3 = children2.loc[(children2["feature"] == "exon") & (children2["end"] == int(cds3["end"])), :].copy()
-                #                             utr3.loc[:, "end"] = int(cds3["start"])
-                #                             utr3.loc[:, "feature"] = "utr3"
-                #                         elif bool(children2["strand"].unique() == "+"):
-                #                             cds5 = children2.loc[(children2["feature"] == "CDS") & (children2["rank"] == 1), :]
-                #                             utr5 = children2.loc[(children2["feature"] == "exon") & (children2["end"] == int(cds5["end"])), :].copy()
-                #                             utr5.loc[:, "end"] = int(cds5["start"])
-                #                             utr5.loc[:, "feature"] = "utr5"
-                #                             cds3 = children2.loc[(children2["feature"] == "CDS"), :]
-                #                             cds3 = cds3.loc[cds3["rank"] == max(cds3["rank"]), :]
-                #                             utr3 = children2.loc[(children2["feature"] == "exon") & (children2["start"] == int(cds3["start"])), :].copy()
-                #                             utr3.loc[:, "start"] = int(cds3["end"])
-                #                             utr3.loc[:, "feature"] = "utr3"
-                #                         # Bind results at the end of the gff dataframe
-                #                         gff_utr.append(utr5)
-                #                         gff_utr.append(utr3)
-                #                     except:
-                #                         print("Not possible to assess correct strand")
-                #                         pass
-                #         except:
-                #             print("Not possible to parse UTR in gene")
-                #     elif "mRNA" not in children["feature"].unique():
-                #         # If no mRNA feature
-                #         if ("CDS" in children["feature"].unique()) & ("exon" in children["feature"].unique()):
-                #             try:
-                #                 if bool(children["strand"].unique() == "-"):
-                #                     cds5 = children.loc[(children["feature"] == "CDS") & (children["rank"] == 1), :]
-                #                     utr5 = children.loc[(children["feature"] == "exon") & (children["start"] == int(cds5["start"])), :].copy()
-                #                     utr5.loc[:, "start"] = int(cds5["end"])
-                #                     utr5.loc[:, "feature"] = "utr5"
-                #                     cds3 = children.loc[(children["feature"] == "CDS"), :]
-                #                     cds3 = cds3.loc[cds3["rank"] == max(cds3["rank"]), :]
-                #                     utr3 = children.loc[(children["feature"] == "exon") & (children["end"] == int(cds3["end"])), :].copy()
-                #                     utr3.loc[:, "end"] = int(cds3["start"])
-                #                     utr3.loc[:, "feature"] = "utr3"
-                #                 elif bool(children["strand"].unique() == "+"):
-                #                     cds5 = children.loc[(children["feature"] == "CDS") & (children["rank"] == 1), :]
-                #                     utr5 = children.loc[(children["feature"] == "exon") & (children["end"] == int(cds5["end"])), :].copy()
-                #                     utr5.loc[:, "end"] = int(cds5["start"])
-                #                     utr5.loc[:, "feature"] = "utr5"
-                #                     cds3 = children.loc[(children["feature"] == "CDS"), :]
-                #                     cds3 = cds3.loc[cds3["rank"] == max(cds3["rank"]), :]
-                #                     utr3 = children.loc[(children["feature"] == "exon") & (children["start"] == int(cds3["start"])), :].copy()
-                #                     utr3.loc[:, "start"] = int(cds3["end"])
-                #                     utr3.loc[:, "feature"] = "utr3"
-                #                 gff_utr.append(utr5)
-                #                 gff_utr.append(utr3)
-                #             except:
-                #                 print("Not possible to parse UTR in gene")
-                #                 pass
-                #         try:
-                #             pd.concat(gff_utr)
-                #             return (gff_utr)
-                #         except (ValueError, TypeError): # if nothing to concatenate
-                #             pass
+            #utrs = list(map(lambda x: utr_parse(gff_obj, x), list_genes))
+            #gff_obj = gff_obj.append(utrs)
 
             # 5'UTR in first exon, 3'UTR in last exon, UTRs inherit attributes from their parent exon
             # Subset first and last exons for each gene/mRNA
