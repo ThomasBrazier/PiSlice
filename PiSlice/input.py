@@ -443,8 +443,11 @@ class GffAccessor:
                     ids = gene
                 res = list(map(lambda x: utr_transcript(gff_obj, x), ids))
                 clean_res = list(filter(lambda x: x is not None, res))
-                res_utr = pd.concat(clean_res)
-                res_utr["rank"] = 0
+                try:
+                    res_utr = pd.concat(clean_res)
+                    res_utr["rank"] = 0
+                except ValueError:
+                    pass
                 return(res_utr)
 
             #utrs = list(map(lambda x: utr_parse(gff_obj, x), list_genes))
