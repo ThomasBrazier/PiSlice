@@ -19,6 +19,7 @@ import re
 import mapply
 import multiprocessing
 import intervaltree
+from multiprocess import Pool
 
 # TODO Implement vcf import by sgkit
 # DEPRECATED
@@ -191,6 +192,7 @@ class GffAccessor:
         #gff_obj = gff_obj.reset_index() # Reset index to get continuous row indexes to iterate
         if (n_cpus == 0):
             n_cpus = multiprocessing.cpu_count()
+        sensible_cpus = mapply.parallel.sensible_cpu_count()
         # Parse first the available information in the attribute field
         if verbose:
             print("Parsing attributes")
@@ -295,7 +297,7 @@ class GffAccessor:
                 :return: pandas, a gff dataframe with introns features
                 """
                 subset = gff.gff.children(gene_id).copy()
-                subset = subset.gff.feature("exon")
+                subset = subset.gff.feature("exon").copy()
                 if (type(subset) == pd.core.frame.DataFrame):
                     gff_introns = subset[:-1].copy()
                     intron_start = list(subset["end"])
@@ -320,10 +322,13 @@ class GffAccessor:
                 else:
                     pass
 
+            p = Pool(min(sensible_cpus, n_cpus))
             # List of exon parents
             list_parent = list(gff_obj.gff.feature("exon")["parent"].unique())
-            # Append the gff of new introns to the dataset
             res = list(map(lambda x: intron(gff_obj, x), list_parent))
+            # Append the gff of new introns to the dataset
+            if verbose:
+                print("Append new introns")
             gff_obj = gff_obj.append(res)
 
         # Infer exon/CDS rank from position or parent
@@ -331,17 +336,19 @@ class GffAccessor:
         # rank = [0] * gff_obj.shape[0]
         def rank_inference(gff_obj, x):
             # Optim: do not create new objects
-            filter_ = ((gff_obj["feature"] == x["feature"]) & (gff_obj["parent"] == x["parent"]))
+            #x = gff_obj.iloc[idx,:]
+            gff_subset = gff_obj[(gff_obj["feature"] == x["feature"]) & (gff_obj["parent"] == x["parent"])].copy()
+            #filter_ = ((gff_obj["feature"] == x["feature"]) & (gff_obj["parent"] == x["parent"]))
             #set = gff_obj.gff.children(x["parent"])
             #set = set.gff.feature(x["feature"])
             #gff_obj[(gff_obj["feature"] == x["feature"]) & (gff_obj["parent"] == x["parent"])]["start"]
             if (x["strand"] == "+"):
             # Rank: how many sequences of the same feature and parent are before that one?
-                rk = sum(bool(z) for z in [s <= int(x["start"]) for s in list(gff_obj[filter_]["start"])])
+                rk = sum(bool(z) for z in [s <= int(x["start"]) for s in list(gff_subset["start"])])
             elif (x["strand"] == "-"):
             # Rank: how many sequences of the same feature and parent are after that one?
             # Read in the opposite direction
-                rk = sum(bool(z) for z in [s >= int(x["start"]) for s in list(gff_obj[filter_]["start"])])
+                rk = sum(bool(z) for z in [s >= int(x["start"]) for s in list(gff_subset["start"])])
             else:
                 rk = 0
             return(rk)
@@ -350,7 +357,6 @@ class GffAccessor:
             if verbose:
                 print("Inferring the rank of exons/CDS/introns")
             # TODO vectorization
-            sensible_cpus = mapply.parallel.sensible_cpu_count()
             mapply.init(n_workers=min(sensible_cpus, n_cpus))
             if verbose:
                 rank = gff_obj.mapply(lambda x: rank_inference(gff_obj, x) if x["feature"] in ["exon", "CDS", "intron"] else 0,
@@ -448,13 +454,16 @@ class GffAccessor:
             list_genes = list(gff_obj.loc[(gff_obj["feature"] == "gene"), "id"])
             #list_genes = gff_obj.loc[(gff_obj["feature"] == "gene"), "id"]
             #utrs = [utr_parse(gff_obj, x) for x in list_genes]
-            utrs = list(map(lambda x: utr_parse(gff_obj, x), list_genes))
+            p = Pool(min(sensible_cpus, n_cpus))
+            utrs = list(p.map(lambda x: utr_parse(gff_obj, x), list_genes))
             #mapply.init(n_workers=n_cpus)
             #utrs = list_genes.mapply(lambda x: utr_parse(gff_obj, x))
             #utrs = pd.concat(utrs)
             # Clean the list for NoneType
             # TODO better handling of this error: utr_parse return NoneType
             clean_utrs = list(filter(lambda x: x is not None, utrs))
+            if verbose:
+                print("Append new UTRs")
             #clean_utrs = [x for x in utrs if x is not None]
             gff_obj = gff_obj.append(clean_utrs)
 

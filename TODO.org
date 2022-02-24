@@ -78,7 +78,7 @@ CLOSED: [2022-02-22 Tue 10:17]
    
 * TODO Optimization
 ** TODO Optimization of GFF parsing
-** Avoid Pandas - Optim with PyRanges and Dask arrays
+** Data Structure: Avoid Pandas - Optim with PyRanges and Dask arrays
 ** Save/import parsed gff in sql local database for improved efficiency
 ** Logs
 ** Parse gff if no id/parent attribute

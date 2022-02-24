@@ -22,19 +22,27 @@ gff = input.read_gff(gff_file)
 #save_filename = "PiSlice/data/Arabidopsis_thaliana_GCA_000001735.2/GCA_000001735.2_TAIR10.1_genomic.csv.gz"
 #input.write_gff2csv(gff, save_filename)
 #gff = input.read_gff(save_filename)
-gff = gff.iloc[0:4000]
+gff = gff.iloc[0:40000]
 # gene_id = 'gene-AT1G01020'
 # gene_id = "rna-gnl|JCVI|mRNA.AT1G01010.1"
 # gff.gff.children(gene_id)
 #gene="gene-AT1G01020"
 #gff_obj = gff.gff.parse_attributes(infer_rank=True, parse_introns=True, parse_utr=False)
 gff_obj = gff
+n_cpus = 8
+verbose = True
 
 t1 = time.time()
 gff_parsed = gff.gff.parse_attributes(infer_rank=True, parse_introns=True, parse_utr=True)
 t2 = time.time()
 t = t2-t1
-t # 19.4988; 14.747; 11.794
+t
+
+# 221.416; 236.159; 200 for n = 40,000
+# 19.4988; 14.747; 11.794 (using map) for n=4000
+# TODO Optim infer rank: slowest step -> optim b y using multiple lists with same index -> get to a numerical problem
+# TODO parsing introns speed decreases exponentially with n rows: parsing, not appending to dataframe (quasi instantly)
+# TODO parsing UTR slow
 
 # Test output function
 filename = "PiSlice/data/Arabidopsis_thaliana_GCA_000001735.2/GCA_000001735.2_TAIR10.1_genomic.csv.gz"
