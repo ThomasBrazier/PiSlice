@@ -53,6 +53,7 @@ CLOSED: [2022-02-22 Tue 10:17]
 * TODO Testing
 ** TODO Create a fake testing dataset
 ** implement the set of tests
+** test gff parse if no exon, no mRNA, no CDS...
    
 * TODO Pop statistics
 ** Sgkit

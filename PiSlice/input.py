@@ -442,7 +442,8 @@ class GffAccessor:
                 else:
                     ids = gene
                 res = list(map(lambda x: utr_transcript(gff_obj, x), ids))
-                res_utr = pd.concat(res)
+                clean_res = list(filter(lambda x: x is not None, res))
+                res_utr = pd.concat(clean_res)
                 res_utr["rank"] = 0
                 return(res_utr)
 
@@ -452,6 +453,7 @@ class GffAccessor:
             # 5'UTR in first exon, 3'UTR in last exon, UTRs inherit attributes from their parent exon
             # Subset first and last exons for each gene/mRNA
             list_genes = list(gff_obj.loc[(gff_obj["feature"] == "gene"), "id"])
+            list_genes = list(filter(lambda x: x is not None, list_genes))
             #list_genes = gff_obj.loc[(gff_obj["feature"] == "gene"), "id"]
             #utrs = [utr_parse(gff_obj, x) for x in list_genes]
             p = Pool(min(sensible_cpus, n_cpus))
