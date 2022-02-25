@@ -446,9 +446,10 @@ class GffAccessor:
                 try:
                     res_utr = pd.concat(clean_res)
                     res_utr["rank"] = 0
+                    return (res_utr)
                 except ValueError:
                     pass
-                return(res_utr)
+
 
             #utrs = list(map(lambda x: utr_parse(gff_obj, x), list_genes))
             #gff_obj = gff_obj.append(utrs)
