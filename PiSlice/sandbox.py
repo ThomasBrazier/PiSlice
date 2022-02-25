@@ -2,9 +2,9 @@
 # Debug
 import time
 import PiSlice.input as input
-fasta_file = "PiSlice/data/Oryza_sativa_GCA_001433935.1/GCA_001433935.1_IRGSP-1.0_genomic.fna.gz"
-fasta_file = "PiSlice/data/Arabidopsis_thaliana_GCA_000001735.2/GCA_000001735.2_TAIR10.1_genomic.fna.gz"
-genome = input.fasta(fasta_file)
+#fasta_file = "PiSlice/data/Oryza_sativa_GCA_001433935.1/GCA_001433935.1_IRGSP-1.0_genomic.fna.gz"
+#fasta_file = "PiSlice/data/Arabidopsis_thaliana_GCA_000001735.2/GCA_000001735.2_TAIR10.1_genomic.fna.gz"
+#genome = input.fasta(fasta_file)
 import pandas as pd
 import re
 import PiSlice.input as input
@@ -22,7 +22,7 @@ gff = input.read_gff(gff_file)
 #save_filename = "PiSlice/data/Arabidopsis_thaliana_GCA_000001735.2/GCA_000001735.2_TAIR10.1_genomic.csv.gz"
 #input.write_gff2csv(gff, save_filename)
 #gff = input.read_gff(save_filename)
-gff = gff.iloc[0:40000]
+gff = gff.iloc[0:4000]
 # gene_id = 'gene-AT1G01020'
 # gene_id = "rna-gnl|JCVI|mRNA.AT1G01010.1"
 # gff.gff.children(gene_id)

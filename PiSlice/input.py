@@ -376,7 +376,6 @@ class GffAccessor:
             # These are implied by the combination of exon and CDS and do not need to be explicitly annotated as part of the canonical gene"
             if verbose:
                 print("Parsing UTR regions")
-            list_genes = list(gff_obj.gff.feature("gene")["id"])
 
             def utr_transcript(gff_obj, mrna):
                 """
