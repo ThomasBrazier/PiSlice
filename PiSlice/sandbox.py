@@ -71,7 +71,7 @@ windows = pd.DataFrame({
     'end': [end]
 })
 results = pop.piSlice(windows=windows,
-                      statistics=["seq", "gene_count", "gc", "gc_noncoding", "gc_intergenic", "gc_codon",
+                      statistics=["seq", "gene_count", "gc", "gc_noncoding", "gc_intergenic", "gc_codon", "gc_intron",
                                   "gene_nbexons", "gene_length", "exon_length", "intron_length"],
                       fasta=genome, gff=gff_parsed)
 

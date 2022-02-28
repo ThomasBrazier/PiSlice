@@ -523,10 +523,22 @@ def gc_intron(fasta, gff, chromosome, start, end, min_bp=6, splicing_strategy="m
     if (feat.shape[0] == 0):
         gc_intron = np.NaN
         intron_prop = np.NaN
+    # If only one feature, Dataframe is transformed in Series
+    elif (isinstance(feat, pd.Series)):
+        list_start = [min(feat["start"], feat["end"])]
+        list_end = [max(feat["start"], feat["end"])]
+        list_seq = [fasta.sample_sequence(chromosome, x, y) for x,y in zip(list_start, list_end)]
+        # Sample sequences
+        seq = "".join(list_seq)
+        gc_intron = gc(seq, min_bp)
+        try:
+            intron_prop = len(seq)/(end-start)
+        except ZeroDivisionError:
+            intron_prop = np.NaN
     elif (feat.shape[0] > 0):
         if (splicing_strategy == "merge"):
-            list_start = [feat.start]
-            list_end = [feat.end]
+            list_start = [x[1] for x in feat["start"].items()]
+            list_end = [x[1] for x in feat["end"].items()]
             intervals = [(min(x, y), max(x, y)) for x, y in zip(list_start, list_end)]
             merge_splicing = intervaltree.IntervalTree.from_tuples(intervals)
             list_start = [x.begin for x in merge_splicing]
