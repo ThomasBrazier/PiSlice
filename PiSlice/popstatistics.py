@@ -525,17 +525,21 @@ def gc_intron(fasta, gff, chromosome, start, end, min_bp=6, splicing_strategy="m
         intron_prop = np.NaN
     elif (feat.shape[0] > 0):
         if (splicing_strategy == "merge"):
-            list_start = list(feat.start)
-            list_end = list(feat.end)
-            if (len(list_start) > 1 & len(list_end) > 1):
-                intervals = [(x,y) for x,y in zip(list_start, list_end)]
-                merge_splicing = intervaltree.IntervalTree.from_tuples(intervals)
-                list_start = [x.begin for x in merge_splicing]
-                list_end = [x.end for x in merge_splicing]
-            else:
-                # Inverse coordinates if sequence sin on "-" strand (i.e. start > end)
-                list_start = min(list_start, list_end)
-                list_end = min(list_start, list_end)
+            list_start = [feat.start]
+            list_end = [feat.end]
+            intervals = [(min(x, y), max(x, y)) for x, y in zip(list_start, list_end)]
+            merge_splicing = intervaltree.IntervalTree.from_tuples(intervals)
+            list_start = [x.begin for x in merge_splicing]
+            list_end = [x.end for x in merge_splicing]
+            # if ((len(list_start) > 1) & (len(list_end) > 1)):
+            #     intervals = [(x,y) for x,y in zip([list_start], [list_end])]
+            #     merge_splicing = intervaltree.IntervalTree.from_tuples(intervals)
+            #     list_start = [x.begin for x in merge_splicing]
+            #     list_end = [x.end for x in merge_splicing]
+            # else:
+            #     # Inverse coordinates if sequence is on "-" strand (i.e. start > end)
+            #     list_start = min(list_start, list_end)
+            #     list_end = min(list_start, list_end)
         list_seq = [fasta.sample_sequence(chromosome, x, y) for x,y in zip(list_start, list_end)]
         # Sample sequences
         seq = "".join(list_seq)

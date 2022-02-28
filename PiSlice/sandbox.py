@@ -3,8 +3,8 @@
 import time
 import PiSlice.input as input
 #fasta_file = "PiSlice/data/Oryza_sativa_GCA_001433935.1/GCA_001433935.1_IRGSP-1.0_genomic.fna.gz"
-#fasta_file = "PiSlice/data/Arabidopsis_thaliana_GCA_000001735.2/GCA_000001735.2_TAIR10.1_genomic.fna.gz"
-#genome = input.fasta(fasta_file)
+fasta_file = "PiSlice/data/Arabidopsis_thaliana_GCA_000001735.2.fna.gz"
+genome = input.fasta(fasta_file)
 import pandas as pd
 import re
 import PiSlice.input as input
@@ -31,6 +31,10 @@ gff = gff.iloc[0:4000]
 gff_obj = gff
 n_cpus = 8
 verbose = True
+chromosome = "CP002684.1"
+start = 100000
+end = 200000
+
 
 t1 = time.time()
 gff_parsed = gff.gff.parse_attributes(infer_rank=True, parse_introns=True, parse_utr=True)
@@ -48,6 +52,7 @@ t
 filename = "PiSlice/data/Arabidopsis_thaliana_GCA_000001735.2/GCA_000001735.2_TAIR10.1_genomic.csv.gz"
 filename = "PiSlice/data/Gossypium_hirsutum_HAU_G.hirsutum_AD1genome_v1.1.csv.gz"
 filename = "PiSlice/data/Camellia_sinensis_GCA_013676235.1.csv.gz"
+filename = "PiSlice/data/Capsella_rubella_GCA_000375325.1.gff.gz"
 input.write_gff2csv(gff_parsed, filename)
 
 
