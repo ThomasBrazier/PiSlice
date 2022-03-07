@@ -53,7 +53,7 @@ filename = "PiSlice/data/Arabidopsis_thaliana_GCA_000001735.2/GCA_000001735.2_TA
 filename = "PiSlice/data/Gossypium_hirsutum_HAU_G.hirsutum_AD1genome_v1.1.csv.gz"
 filename = "PiSlice/data/Camellia_sinensis_GCA_013676235.1.csv.gz"
 filename = "PiSlice/data/Capsella_rubella_GCA_000375325.1.gff.gz"
-input.write_gff2csv(gff_parsed, filename)
+#input.write_gff2csv(gff_parsed, filename)
 
 
 # gff_parsed.gff.children("gene-AT1G01010")
@@ -72,7 +72,7 @@ windows = pd.DataFrame({
 })
 results = pop.piSlice(windows=windows,
                       statistics=["seq", "gene_count", "gc", "gc_noncoding", "gc_intergenic", "gc_codon", "gc_intron",
-                                  "gene_nbexons", "gene_length", "exon_length", "intron_length"],
+                                  "gene_nbexons", "gene_length", "exon_length", "intron_length", "gc3exon1"],
                       fasta=genome, gff=gff_parsed)
 
 gff_parsed = gff.gff.parse_attributes(infer_rank=True, parse_introns=True)
