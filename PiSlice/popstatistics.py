@@ -550,7 +550,7 @@ def gc_intron(fasta, gff, chromosome, start, end, min_bp=6, splicing_strategy="m
         if (splicing_strategy == "merge"):
             list_start = [x[1] for x in feat["start"].items()]
             list_end = [x[1] for x in feat["end"].items()]
-            intervals = [(min(x, y), max(x, y)) for x, y in zip(list_start, list_end)]
+            intervals = [(min(x, y), max(x, y)) for x, y in zip(list_start, list_end) if x != y]
             merge_splicing = intervaltree.IntervalTree.from_tuples(intervals)
             list_start = [x.begin for x in merge_splicing]
             list_end = [x.end for x in merge_splicing]

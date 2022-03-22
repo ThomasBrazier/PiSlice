@@ -2,7 +2,8 @@
 ** DONE Min size of sequences set to 6bp, optional argument
    CLOSED: [2022-01-10 Mon 10:20]
 ** TODO Implement ambiguous bases in GC/CpG content
-** TODO GC3 exon 1
+** DONE GC3 exon 1
+CLOSED: [2022-03-07 Mon 09:26]
 ** CpG -> mean length of CpG motifs?
 ** TODO Test for GC/CpG ambiguous bases
 ** TODO Order of splicing variant
