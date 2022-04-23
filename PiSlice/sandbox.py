@@ -49,11 +49,16 @@ t
 # TODO parsing UTR slow
 
 # Test output function
-filename = "PiSlice/data/Arabidopsis_thaliana_GCA_000001735.2/GCA_000001735.2_TAIR10.1_genomic.csv.gz"
-filename = "PiSlice/data/Gossypium_hirsutum_HAU_G.hirsutum_AD1genome_v1.1.csv.gz"
-filename = "PiSlice/data/Camellia_sinensis_GCA_013676235.1.csv.gz"
-filename = "PiSlice/data/Capsella_rubella_GCA_000375325.1.gff.gz"
-#input.write_gff2csv(gff_parsed, filename)
+filename = "PiSlice/data/GCA_000001735.2_TAIR10.1_genomic.csv.gz"
+#filename = "PiSlice/data/Gossypium_hirsutum_HAU_G.hirsutum_AD1genome_v1.1.csv.gz"
+#filename = "PiSlice/data/Camellia_sinensis_GCA_013676235.1.csv.gz"
+#filename = "PiSlice/data/Capsella_rubella_GCA_000375325.1.gff.gz"
+input.write_gff2csv(gff_parsed, filename)
+gff = input.read_gff(filename)
+import importlib
+importlib.reload(pop)
+import PiSlice.popstatistics as pop
+results = pop.piSlice(windows=gff, statistics=["gene_count", "gc", "gc_noncoding", "gc_intergenic", "gc_codon", "gc_intron"], fasta=genome, gff=gff)
 
 
 # gff_parsed.gff.children("gene-AT1G01010")
