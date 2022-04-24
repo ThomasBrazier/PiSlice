@@ -325,11 +325,13 @@ class GffAccessor:
             p = Pool(min(sensible_cpus, n_cpus))
             # List of exon parents
             list_parent = list(gff_obj.gff.feature("exon")["parent"].unique())
+            #res = list(map(lambda x: intron(gff_obj, x), list_parent))
             res = list(map(lambda x: intron(gff_obj, x), list_parent))
             # Append the gff of new introns to the dataset
             if verbose:
                 print("Append new introns")
             gff_obj = gff_obj.append(res)
+            #gff_obj = pd.concat([gff_obj, res])
 
         # Infer exon/CDS rank from position or parent
         # CDS inherits rank of its parent exon
@@ -382,11 +384,11 @@ class GffAccessor:
                 Return UTR of a single transcript
                 :param id: id of a gene or mRNA to get a single transcript
                 """
-                transcript = gff_obj.gff.children(mrna)
+                transcript = gff_obj.gff.children(mrna, all=False)
                 if ("CDS" not in transcript["feature"].unique()):
                     return (None)
                 strand = gff_obj.gff.id(mrna)["strand"]
-                if (strand.item() == "-"):
+                if (strand.unique().item() == "-"):
                     # TSS is the end of first CDS
                     tss = max(transcript.loc[transcript["feature"] == "CDS", "end"])
                     tts = min(transcript.loc[transcript["feature"] == "CDS", "start"])
@@ -406,7 +408,7 @@ class GffAccessor:
                         utr3["feature"] = "utr3"
                     except ValueError:
                         pass
-                elif (strand.item() == "+"):
+                elif (strand.unique().item() == "+"):
                     # TSS is the start of first CDS; TTS is the end of last CDS
                     tss = min(transcript.loc[transcript["feature"] == "CDS", "start"])
                     tts = max(transcript.loc[transcript["feature"] == "CDS", "end"])
@@ -432,7 +434,7 @@ class GffAccessor:
                 """
                 Parse UTRs of each transcript in a gene and return a list of lists
                 """
-                children = gff_obj.gff.children(gene)
+                children = gff_obj.gff.children(gene, all=False)
                 # Take care of non coding genes
                 if ("CDS" not in children["feature"].unique()):
                     return(None)
@@ -461,6 +463,7 @@ class GffAccessor:
             #utrs = [utr_parse(gff_obj, x) for x in list_genes]
             p = Pool(min(sensible_cpus, n_cpus))
             utrs = list(p.map(lambda x: utr_parse(gff_obj, x), list_genes))
+            #utrs = list(p.map(lambda x: utr_parse(gff_obj, x), list_genes))
             #mapply.init(n_workers=n_cpus)
             #utrs = list_genes.mapply(lambda x: utr_parse(gff_obj, x))
             #utrs = pd.concat(utrs)
@@ -514,7 +517,8 @@ class GffAccessor:
         # Second order children, e.g. exons children of mRNA
         if all:
             recursive_children = self._obj.gff.children(list(subset["id"]), all=False)
-            subset = subset.append(recursive_children)
+            # subset = subset.append(recursive_children) ## Deprecated in pandas since 1.4.0; use concat() instead
+            subset = pd.concat([subset, recursive_children])
             # Add one more level if children are found
             # if len(recursive_children) > 0:
             #     recursive_children = self._obj.gff.children(list(subset["id"]), all=False)
