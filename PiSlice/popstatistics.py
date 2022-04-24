@@ -10,7 +10,8 @@ from Bio.Seq import Seq
 import PiSlice.input as input
 from itertools import compress
 import numpy as np
-#import mapply
+import mapply
+import multiprocessing
 import re
 #from pandarallel import pandarallel
 import intervaltree
@@ -41,10 +42,14 @@ def piSlice(windows, statistics=[""], min_bp=6, splicing_strategy="merge", n_cpu
     # Header
     print("Number of windows:", len(windows.index))
     print("Chromosomes are", " ".join(windows.seqname.unique()))
+    if (n_cpus == 0):
+        n_cpus = multiprocessing.cpu_count()
+    sensible_cpus = mapply.parallel.sensible_cpu_count()
+    mapply.init(n_workers=min(sensible_cpus, n_cpus))
 
     if "gene_count" in statistics:
         print("Process number of genes")
-        estimates = windows.apply(lambda x: gene_count(gff,
+        estimates = windows.mapply(lambda x: gene_count(gff,
                                              x["seqname"],
                                              x["start"],
                                              x["end"]),
@@ -53,7 +58,7 @@ def piSlice(windows, statistics=[""], min_bp=6, splicing_strategy="merge", n_cpu
 
     if "gene_length" in statistics:
         print("Process mean gene length (bp)")
-        estimates = windows.apply(lambda x: feature_length(gff,
+        estimates = windows.mapply(lambda x: feature_length(gff,
                                              x["seqname"],
                                              x["start"],
                                              x["end"],
@@ -63,7 +68,7 @@ def piSlice(windows, statistics=[""], min_bp=6, splicing_strategy="merge", n_cpu
 
     if "exon_length" in statistics:
         print("Process mean exon length (bp)")
-        estimates = windows.apply(lambda x: feature_length(gff,
+        estimates = windows.mapply(lambda x: feature_length(gff,
                                              x["seqname"],
                                              x["start"],
                                              x["end"],
@@ -73,7 +78,7 @@ def piSlice(windows, statistics=[""], min_bp=6, splicing_strategy="merge", n_cpu
 
     if "intron_length" in statistics:
         print("Process mean intron length (bp)")
-        estimates = windows.apply(lambda x: feature_length(gff,
+        estimates = windows.mapply(lambda x: feature_length(gff,
                                              x["seqname"],
                                              x["start"],
                                              x["end"],
@@ -83,7 +88,7 @@ def piSlice(windows, statistics=[""], min_bp=6, splicing_strategy="merge", n_cpu
 
     if "gene_nbexons" in statistics:
         print("Process the mean number of exons")
-        estimates = windows.apply(lambda x: gene_nbexons(gff,
+        estimates = windows.mapply(lambda x: gene_nbexons(gff,
                                              x["seqname"],
                                              x["start"],
                                              x["end"]),
@@ -92,7 +97,7 @@ def piSlice(windows, statistics=[""], min_bp=6, splicing_strategy="merge", n_cpu
 
     if "gene_density" in statistics:
         print("Process gene density")
-        estimates = windows.apply(lambda x: gene_density(gff,
+        estimates = windows.mapply(lambda x: gene_density(gff,
                                              x["seqname"],
                                              x["start"],
                                              x["end"]),
@@ -101,7 +106,7 @@ def piSlice(windows, statistics=[""], min_bp=6, splicing_strategy="merge", n_cpu
 
     if "snp_count" in statistics:
         print("Process number of SNPs")
-        estimates = windows.apply(lambda x: snp_count(vcf,
+        estimates = windows.mapply(lambda x: snp_count(vcf,
                                              x["seqname"],
                                              x["start"],
                                              x["end"]),
