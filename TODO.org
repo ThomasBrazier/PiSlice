@@ -52,11 +52,13 @@ CLOSED: [2022-02-14 Mon 11:04]
 CLOSED: [2022-02-22 Tue 10:17]
 ** See https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7222033/
 
+** TODO Bugfix: gff.children() not wotking well with all=True in Brassica rapa Cheng2016
 
 * TODO Testing
 ** TODO Create a fake testing dataset
 ** implement the set of tests
 ** test gff parse if no exon, no mRNA, no CDS...
+** Testing gff.children()
    
 * TODO Pop statistics
 ** Sgkit
