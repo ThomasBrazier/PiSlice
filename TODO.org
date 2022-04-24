@@ -88,6 +88,8 @@ CLOSED: [2022-02-22 Tue 10:17]
 ** Parse gff if no id/parent attribute
 ** Validate functions for input data (e.g. check type and dimension)
 ** TODO Parallel processing in pislice (mapply)
+https://github.com/pysam-developers/pysam/issues/938
+https://github.com/pysam-developers/pysam/issues/752
 ** Splicing variants strategy (merge/keep, i.e. count as independent genes)
 ** Handle score in gff - filtering
 ** iPython Notebook for a tutorial of PiSlice
