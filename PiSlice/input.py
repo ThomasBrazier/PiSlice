@@ -82,7 +82,7 @@ class genotype:
 # TODO Testing the fasta.fetch() with testing data
 # Test Driven Dev
 # TODO Replace pysam FastaFile by a dictionnary with (chr name: sequence string)
-# Assert if same results
+# Assert if new class reproduce results of the pysam.fetch
 # TODO parallelize pool.apply()
 class fasta():
     """
@@ -92,9 +92,30 @@ class fasta():
     """
     # TODO Constructor for the fasta class
     def __init__(self, filename):
-        with gzip.open(filename) as f:
-            self.seq = {rec.id: rec.seq for rec in SeqIO.parse(f, "fasta")}
+        f = gzip.open(filename, "rt")
+        self.seq = {rec.id: str(rec.seq) for rec in SeqIO.parse(f, "fasta")}
 
+    def summary(self):
+        """
+        Return a summary of the fasta file. Number of sequences, names and sequence length.
+        """
+
+    def length(self):
+        """
+        Return the length of each sequence
+        """
+
+    def seqname(self):
+        """
+        Return sequence names in a fasta object
+        """
+        return self.seq.keys()
+
+    def sequence(self):
+        """
+        Return sequence names in a fasta object
+        """
+        return self.seq.values()
 
     def sample_chromosome(self, chromosome):
         """
@@ -103,7 +124,7 @@ class fasta():
         :return: A DNA sequence of the whole chromosome (str)
         """
         # Chromosome can be either an integer (index) or a string (name)
-        return self.fetch(chromosome)
+        return self.seq[str(chromosome)]
 
 
     def sample_sequence(self, chromosome, start, end):
@@ -117,12 +138,10 @@ class fasta():
         """
         # Chromosome can be either an integer (index) or a string (name)
         # start - 1 because we work in 1-bp offset while python is 0-bp offset
-        
         # Verify that start-end positions are not inverted (start < end)
         start = min(start, end)
         end = max(start, end)
-
-        return self.fetch(chromosome, start - 1, end)
+        return self.seq[str(chromosome)][start - 1, end]
 
     def sample_sequence_masked(self, chromosome, start, end, mask):
         """

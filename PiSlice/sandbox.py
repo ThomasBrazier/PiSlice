@@ -2,6 +2,13 @@
 # Debug
 import time
 import PiSlice.input as input
+filename = "PiSlice/data/fasta_test.fna.gz"
+genome = input.fasta(filename)
+genome.seqname()
+genome.sequence()
+genome.sample_chromosome("CP002684.1")
+genome.sample_sequence("CP002684.1", 1, 20)
+
 #fasta_file = "PiSlice/data/Oryza_sativa_GCA_001433935.1/GCA_001433935.1_IRGSP-1.0_genomic.fna.gz"
 #fasta_file = "PiSlice/data/Arabidopsis_thaliana_GCA_000001735.2.fna.gz"
 fasta_file = "PiSlice/data/Brassica_rapa_Brapa1.5/Brassica_rapa_Brapa1.5.fna.gz"
