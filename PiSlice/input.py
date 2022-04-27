@@ -10,7 +10,7 @@ Functions in this module import .fasta, .gff, .vcf and coordinate files in appro
 # TODO Create a global unified and consistent 'genomic' object that contain all data in slots: genome sequence, features, snps and associated metadata
 import pandas as pd
 from cyvcf2 import VCF
-from pysam import FastaFile
+#from pysam import FastaFile
 import numpy as np
 import pandas
 import gzip
@@ -20,6 +20,7 @@ import mapply
 import multiprocessing
 import intervaltree
 from multiprocess import Pool
+from Bio import SeqIO
 
 # TODO Implement vcf import by sgkit
 # DEPRECATED
@@ -78,14 +79,23 @@ class genotype:
         self.samples = variants.samples
         self.loci = loci
 
-
-
-class fasta(FastaFile):
+# TODO Testing the fasta.fetch() with testing data
+# Test Driven Dev
+# TODO Replace pysam FastaFile by a dictionnary with (chr name: sequence string)
+# Assert if same results
+# TODO parallelize pool.apply()
+class fasta():
     """
     Read a fasta file and return a 'fasta' sequence object
     inheriting the 'FastaFile' class from 'pysam'
     Filename is given in argument when creating the 'fasta' object
     """
+    # TODO Constructor for the fasta class
+    def __init__(self, filename):
+        with gzip.open(filename) as f:
+            self.seq = {rec.id: rec.seq for rec in SeqIO.parse(f, "fasta")}
+
+
     def sample_chromosome(self, chromosome):
         """
         Sample a whole chromosome sequence
