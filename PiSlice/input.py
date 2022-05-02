@@ -141,7 +141,7 @@ class fasta():
         # Verify that start-end positions are not inverted (start < end)
         start = min(start, end)
         end = max(start, end)
-        return self.seq[str(chromosome)][start - 1, end]
+        return self.seq[str(chromosome)][(start - 1):end:]
 
     def sample_sequence_masked(self, chromosome, start, end, mask):
         """

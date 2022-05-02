@@ -10,13 +10,13 @@ genome.sample_chromosome("CP002684.1")
 genome.sample_sequence("CP002684.1", 1, 20)
 
 #fasta_file = "PiSlice/data/Oryza_sativa_GCA_001433935.1/GCA_001433935.1_IRGSP-1.0_genomic.fna.gz"
-#fasta_file = "PiSlice/data/Arabidopsis_thaliana_GCA_000001735.2.fna.gz"
-fasta_file = "PiSlice/data/Brassica_rapa_Brapa1.5/Brassica_rapa_Brapa1.5.fna.gz"
+fasta_file = "PiSlice/data/Arabidopsis_thaliana_GCA_000001735.2.fna.gz"
+#fasta_file = "PiSlice/data/Brassica_rapa_Brapa1.5/Brassica_rapa_Brapa1.5.fna.gz"
 genome = input.fasta(fasta_file)
 import pandas as pd
 #gff_file = "PiSlice/data/Oryza_sativa_GCF_001433935.1.gff.gz"
 gff_file = "PiSlice/data/Arabidopsis_thaliana_GCA_000001735.2.gff.gz"
-gff_file = "PiSlice/data/Brassica_rapa_Brapa1.5/Brassica_rapa_Brapa1.5.gff.gz"
+#gff_file = "PiSlice/data/Brassica_rapa_Brapa1.5/Brassica_rapa_Brapa1.5.gff.gz"
 # gff_file = "PiSlice/data/Gossypium_hirsutum_HAU_G.hirsutum_AD1genome_v1.1.gff.gz"
 # gff_file = "PiSlice/data/Camellia_sinensis_GCA_013676235.1.gff.gz"
 # gff_file = "PiSlice/data/Capsella_rubella_GCA_000375325.1.gff.gz"
@@ -24,8 +24,8 @@ gff_file = "PiSlice/data/Brassica_rapa_Brapa1.5/Brassica_rapa_Brapa1.5.gff.gz"
 # gff_file = "PiSlice/data/Cucumis_sativus_GCA_000004075.2.gff.gz"
 # gff_file = "PiSlice/data/Cucurbita_maxima_Cmaxima_v1.1.gff.gz"
 gff = input.read_gff(gff_file)
-gff_parsed = gff.gff.parse_attributes(infer_rank=True, parse_introns=True, parse_utr=False)
-gff_obj = gff_parsed
+#gff_parsed = gff.gff.parse_attributes(infer_rank=True, parse_introns=True, parse_utr=False)
+#gff_obj = gff_parsed
 #gff = gff.gff.parse_attributes(infer_rank=False)
 #save_filename = "PiSlice/data/Oryza_sativa_GCA_001433935.1/GCA_001433935.1_IRGSP-1.0_genomic.csv.gz"
 #save_filename = "PiSlice/data/Arabidopsis_thaliana_GCA_000001735.2/GCA_000001735.2_TAIR10.1_genomic.csv.gz"
@@ -43,6 +43,12 @@ verbose = True
 chromosome = "CP002684.1"
 start = 100000
 end = 200000
+
+import PiSlice.popstatistics as pop
+gff_parsed = gff.gff.parse_attributes(infer_rank=True, parse_introns=True, parse_utr=True)
+results = pop.piSlice(windows=gff_parsed, statistics=["gene_count", "gc", "gc_noncoding", "gc_intergenic", "gc_codon", "gc_intron"], fasta=genome, gff=gff_parsed)
+
+
 
 
 t1 = time.time()
@@ -90,7 +96,7 @@ results = pop.piSlice(windows=windows,
                       fasta=genome, gff=gff_parsed)
 
 gff_parsed = gff.gff.parse_attributes(infer_rank=True, parse_introns=True)
-results = pop.piSlice(windows=windows, statistics=["gene_count", "gc", "gc_noncoding", "gc_intergenic", "gc_codon", "gc_intron"], fasta=genome, gff=gff_parsed)
+results = pop.piSlice(windows=gff_parsed, statistics=["gene_count", "gc", "gc_noncoding", "gc_intergenic", "gc_codon", "gc_intron"], fasta=genome, gff=gff_parsed)
 
 
 # Input/output

@@ -123,7 +123,7 @@ def piSlice(windows, statistics=[""], min_bp=6, splicing_strategy="merge", n_cpu
 
     if "gc_noncoding" in statistics:
         print("Process non-coding GC content")
-        estimates = windows.apply(lambda x: gc_noncoding(fasta,
+        estimates = windows.mapply(lambda x: gc_noncoding(fasta,
                                              gff,
                                              x["seqname"],
                                              x["start"],
@@ -138,7 +138,7 @@ def piSlice(windows, statistics=[""], min_bp=6, splicing_strategy="merge", n_cpu
 
     if "gc_intergenic" in statistics:
         print("Process intergenic GC content")
-        estimates = windows.apply(lambda x: gc_intergenic(fasta,
+        estimates = windows.mapply(lambda x: gc_intergenic(fasta,
                                              gff,
                                              x["seqname"],
                                              x["start"],
@@ -153,7 +153,7 @@ def piSlice(windows, statistics=[""], min_bp=6, splicing_strategy="merge", n_cpu
 
     if "gc_intron" in statistics:
         print("Process intron GC content")
-        estimates = windows.apply(lambda x: gc_intron(fasta,
+        estimates = windows.mapply(lambda x: gc_intron(fasta,
                                              gff,
                                              x["seqname"],
                                              x["start"],
@@ -171,9 +171,7 @@ def piSlice(windows, statistics=[""], min_bp=6, splicing_strategy="merge", n_cpu
     if "gc_codon" in statistics:
         print("Process GC content with codon positions")
         # Compute GC content
-        # TODO Optim apply(), but fasta.sample_sequence() can not be parralelized
-        # impossible to reduce using cython
-        estimates = windows.apply(lambda x: gc_codon(fasta,
+        estimates = windows.mapply(lambda x: gc_codon(fasta,
                                              gff,
                                              x["seqname"],
                                              x["start"],
@@ -194,7 +192,7 @@ def piSlice(windows, statistics=[""], min_bp=6, splicing_strategy="merge", n_cpu
 
     if "gc3exon1" in statistics:
         print("Process GC3 first exon")
-        estimates = windows.apply(lambda x: gc3exon1(fasta,
+        estimates = windows.mapply(lambda x: gc3exon1(fasta,
                                                      gff,
                                                      x["seqname"],
                                                      x["start"],
