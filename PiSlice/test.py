@@ -1,6 +1,8 @@
 import numpy as np
 import pandas as pd
 
+from input import fasta
+
 # Test the GC function
 from PiSlice.popstatistics import gc
 test = "ATCGTAGCTGGGCTAGCTGATGCGCGCG" # 18 GC on 28 nucleotides

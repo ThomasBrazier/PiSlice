@@ -51,6 +51,7 @@ CLOSED: [2022-02-14 Mon 11:04]
 ** DONE mean exon length, mean intron length
 CLOSED: [2022-02-22 Tue 10:17]
 ** See https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7222033/
+** TODO Frame '.' must raise an error
 
 ** TODO Bugfix: gff.children() not wotking well with all=True in Brassica rapa Cheng2016
 

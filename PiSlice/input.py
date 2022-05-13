@@ -10,11 +10,9 @@ Functions in this module import .fasta, .gff, .vcf and coordinate files in appro
 # TODO Create a global unified and consistent 'genomic' object that contain all data in slots: genome sequence, features, snps and associated metadata
 import pandas as pd
 from cyvcf2 import VCF
-#from pysam import FastaFile
 import numpy as np
 import pandas
 import gzip
-from pandas import DataFrame
 import re
 import mapply
 import multiprocessing
@@ -81,7 +79,7 @@ class genotype:
 
 # TODO Testing the fasta.fetch() with testing data
 # Test Driven Dev
-# TODO Replace pysam FastaFile by a dictionnary with (chr name: sequence string)
+# DONE Replace pysam FastaFile by a dictionnary with (chr name: sequence string)
 # Assert if new class reproduce results of the pysam.fetch
 # TODO parallelize pool.apply()
 class fasta():
