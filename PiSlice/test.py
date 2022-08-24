@@ -39,3 +39,7 @@ windows = pd.DataFrame({
     'End': [2000, 1005]
 })
 piSlice(windows, statistics=["cpg"], fasta=genome)
+
+
+
+

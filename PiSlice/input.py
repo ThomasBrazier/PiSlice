@@ -409,9 +409,10 @@ class GffAccessor:
             def utr_transcript(gff_obj, mrna):
                 """
                 Return UTR of a single transcript
-                :param id: id of a gene or mRNA to get a single transcript
+                :param gff_obj: a GFF where to store data
+                :param mrna: id of a gene or mRNA to get a single transcript
                 """
-                transcript = gff_obj.gff.children(mrna, all=False)
+                transcript = gff_obj.gff.children(mrna, all=True)
                 if ("CDS" not in transcript["feature"].unique()):
                     return (None)
                 strand = gff_obj.gff.id(mrna)["strand"]
@@ -453,15 +454,16 @@ class GffAccessor:
                         utr3["feature"] = "utr3"
                     except ValueError:
                         pass
-                utr = utr5
-                utr = utr.append(utr3)
+                #utr = utr5
+                #utr = utr.append(utr3)
+                utr = pd.concat([utr5, utr3])
                 return (utr)
 
             def utr_parse(gff_obj, gene):
                 """
                 Parse UTRs of each transcript in a gene and return a list of lists
                 """
-                children = gff_obj.gff.children(gene, all=False)
+                children = gff_obj.gff.children(gene, all=True)
                 # Take care of non coding genes
                 if ("CDS" not in children["feature"].unique()):
                     return(None)
@@ -500,7 +502,8 @@ class GffAccessor:
             if verbose:
                 print("Append new UTRs")
             #clean_utrs = [x for x in utrs if x is not None]
-            gff_obj = gff_obj.append(clean_utrs)
+            #gff_obj = gff_obj.append(clean_utrs)
+            gff_obj = pd.concat(clean_utrs)
 
         gff_obj.start = gff_obj.start.astype(int, errors='ignore') # Leave NA values as they are
         gff_obj.end = gff_obj.end.astype(int, errors='ignore')
