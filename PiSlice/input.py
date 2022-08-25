@@ -503,6 +503,7 @@ class GffAccessor:
                 print("Append new UTRs")
             #clean_utrs = [x for x in utrs if x is not None]
             #gff_obj = gff_obj.append(clean_utrs)
+            clean_utrs = pd.Series(clean_utrs)
             gff_obj = pd.concat([gff_obj, clean_utrs])
 
         gff_obj.start = gff_obj.start.astype(int, errors='ignore') # Leave NA values as they are
