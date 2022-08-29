@@ -10,12 +10,12 @@ import PiSlice.input as input
 # genome.sample_sequence("CP002684.1", 1, 20)
 
 #fasta_file = "PiSlice/data/Oryza_sativa_GCA_001433935.1/GCA_001433935.1_IRGSP-1.0_genomic.fna.gz"
-fasta_file = "PiSlice/data/Arabidopsis_thaliana_GCA_000001735.2/Arabidopsis_thaliana_GCA_000001735.2.fna.gz"
+fasta_file = "PiSlice/data/Arabidopsis_thaliana_GCA_000001735.2.fna.gz"
 #fasta_file = "PiSlice/data/Brassica_rapa_Brapa1.5/Brassica_rapa_Brapa1.5.fna.gz"
 genome = input.fasta(fasta_file)
 import pandas as pd
 #gff_file = "PiSlice/data/Oryza_sativa_GCF_001433935.1.gff.gz"
-gff_file = "PiSlice/data/Arabidopsis_thaliana_GCA_000001735.2/Arabidopsis_thaliana_GCA_000001735.2.gff.gz"
+gff_file = "PiSlice/data/Arabidopsis_thaliana_GCA_000001735.2.gff.gz"
 #gff_file = "PiSlice/data/Brassica_rapa_Brapa1.5/Brassica_rapa_Brapa1.5.gff.gz"
 # gff_file = "PiSlice/data/Gossypium_hirsutum_HAU_G.hirsutum_AD1genome_v1.1.gff.gz"
 # gff_file = "PiSlice/data/Camellia_sinensis_GCA_013676235.1.gff.gz"
