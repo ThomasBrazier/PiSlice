@@ -5,8 +5,6 @@ import numpy as np
 def test_cpg():
     assert (cpg("ATTANNCGCGGCCCGATA") == 0.375)
 
-
-
 def test_gc():
     test1 = "ATCGTAGCTGGGCTAGCTGATGCGCGCG"  # 18 GC on 28 nucleotides
     test2 = "ATCGTNGCNGGGCTAGCTGATGCGCGCG"  # 18 GC on 26 nucleotides + 2 Ns not to consider
