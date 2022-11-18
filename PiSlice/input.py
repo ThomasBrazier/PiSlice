@@ -505,7 +505,7 @@ class GffAccessor:
         """
         Return a new gff object with only features (rows) completely within the queried genomic region
         """
-        subset = self._obj[(self._obj["start"] >= start) & (self._obj["end"] >= end) & (self._obj["seqname"] == seq)]
+        subset = self._obj[(self._obj["start"] >= start) & (self._obj["end"] <= end) & (self._obj["seqname"] == seq)]
         return(subset)
 
     def id(self, id):
