@@ -6,14 +6,11 @@ Functions in this module are used to estimate population genomics statistics alo
 """
 
 import pandas as pd
-from Bio.Seq import Seq
-import PiSlice.input as input
-from itertools import compress
+
 import numpy as np
 import mapply
 import multiprocessing
 import re
-#from pandarallel import pandarallel
 import intervaltree
 
 def piSlice(windows, statistics=[""], min_bp=6, splicing_strategy="merge", n_cpus=6, *args, **kwargs):
