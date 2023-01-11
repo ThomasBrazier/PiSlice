@@ -1,3 +1,42 @@
+# Test the VCF nucleotide diversity part
+import PiSlice.core as ps
+import allel
+import pandas as pd
+
+vcf_path = "tests/test.vcf.gz"
+vcf = allel.read_vcf(vcf_path)
+
+data = [["1", 1, 9999], ["1", 10000, 19999], ["1", 20000, 29999]]
+windows = pd.DataFrame(data, columns=["seqname", "start", "end"])
+windows
+
+results = ps.piSlice(windows=windows, statistics=["snp_count", "snp_density", "pi"], vcf=vcf)
+results
+
+import PiSlice.input as input
+fasta_file = "tests/sandbox.fna.gz"
+genome = input.fasta(fasta_file)
+gff_file = "tests/sandbox.gff.gz"
+gff = input.read_gff(gff_file)
+gff = gff.iloc[0:4000]
+chromosome = "CP002684.1"
+gff_parsed = gff.gff.parse_attributes(infer_rank=True, parse_introns=True, parse_utr=True)
+results = ps.piSlice(windows=gff_parsed, statistics=["gene_count", "gc", "gc_codon", "gc_intron"], fasta=genome, gff=gff_parsed)
+results
+# Bug in gc_noncoding and gc_intergenic
+#   File "/home/tbrazier/Academic/PiSlice/PiSlice/core.py", line 152, in <lambda>
+#     estimates = windows.mapply(lambda x: nuc.gc_intergenic(fasta,
+#   File "/home/tbrazier/Academic/PiSlice/PiSlice/nucleotide.py", line 299, in gc_intergenic
+#     gc_intergenic = gc(seq)
+#   File "/home/tbrazier/Academic/PiSlice/PiSlice/nucleotide.py", line 128, in gc
+#     sequence = sequence.upper()
+# AttributeError: 'list' object has no attribute 'upper'
+
+
+
+
+
+
 
 # Debug
 import time

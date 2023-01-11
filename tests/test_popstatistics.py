@@ -1,5 +1,5 @@
-from PiSlice.popstatistics import cpg
-from PiSlice.popstatistics import gc
+from PiSlice.nucleotide import cpg
+from PiSlice.nucleotide import gc
 import numpy as np
 
 def test_cpg():

@@ -1,8 +1,12 @@
 # PiSlice
 
+[//]: # (Hide the complexity behind)
+
+[//]: # (Manipulate features that have a sense/meaning e.g. exon ranks gene categories...)
+
 Package in active development (BETA).
 
-Estimate Pi and other population genomics statistics (PiN, PiS, Tajima's D, GC content) for a given list of windows coordinates.
+Estimate Pi and other evolutionary and population genomics statistics (PiN, PiS, Tajima's D, GC content) for a given list of windows coordinates.
 
 Genomic analyses from chromosome to gene scale (e.g. explore the intron/exons structure).
 

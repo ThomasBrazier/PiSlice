@@ -6,216 +6,9 @@ Functions in this module are used to estimate population genomics statistics alo
 """
 
 import pandas as pd
-
 import numpy as np
-import mapply
-import multiprocessing
 import re
 import intervaltree
-
-def piSlice(windows, statistics=[""], min_bp=6, splicing_strategy="merge", n_cpus=6, *args, **kwargs):
-    """
-    The main function to return a data frame of population genomics statistics for a list of genomic windows.
-    :param windows: DataFrame, a pandas data frame (can be gff) with at least three columns: seqname, start, end
-    :param statistics: str, a list of statistics to compute
-    :param **fasta: fasta, a fasta object with multiple fasta sequences
-    :param **gff: DataFrame, a gff object
-    :param **vcf: vcf, a vcf object
-    :return: DataFrame, a data frame with population statistics for each windows
-    """
-    fasta = kwargs.get("fasta", "")
-    gff = kwargs.get("gff", "")
-    vcf = kwargs.get("vcf", "")
-    #pandarallel.initialize(nb_workers=n_cpus, progress_bar=True)
-
-    # Function to subset sequences in the fasta file
-    def make_dataset(windows, fasta):
-        # Sample sequences
-        # Sample all sequences from chromosomes and start-end positions
-        list_seq = list(windows.apply(lambda x: fasta.sample_sequence(x["seqname"], x["start"], x["end"]), axis=1))
-        return(list_seq)
-
-    # TODO A progress bar
-    # Header
-    print("Number of windows:", len(windows.index))
-    print("Chromosomes are", " ".join(windows.seqname.unique()))
-    if (n_cpus == 0):
-        n_cpus = multiprocessing.cpu_count()
-    sensible_cpus = mapply.parallel.sensible_cpu_count()
-    mapply.init(n_workers=min(sensible_cpus, n_cpus))
-
-    if "gene_count" in statistics:
-        print("Process number of genes")
-        estimates = windows.mapply(lambda x: gene_count(gff,
-                                             x["seqname"],
-                                             x["start"],
-                                             x["end"]),
-                             axis=1)
-        windows["gene_count"] = estimates
-
-    if "gene_length" in statistics:
-        print("Process mean gene length (bp)")
-        estimates = windows.mapply(lambda x: feature_length(gff,
-                                             x["seqname"],
-                                             x["start"],
-                                             x["end"],
-                                             feature="gene"),
-                             axis=1)
-        windows["gene_length"] = estimates
-
-    if "exon_length" in statistics:
-        print("Process mean exon length (bp)")
-        estimates = windows.mapply(lambda x: feature_length(gff,
-                                             x["seqname"],
-                                             x["start"],
-                                             x["end"],
-                                             feature="exon"),
-                             axis=1)
-        windows["exon_length"] = estimates
-
-    if "intron_length" in statistics:
-        print("Process mean intron length (bp)")
-        estimates = windows.mapply(lambda x: feature_length(gff,
-                                             x["seqname"],
-                                             x["start"],
-                                             x["end"],
-                                             feature="intron"),
-                             axis=1)
-        windows["intron_length"] = estimates
-
-    if "gene_nbexons" in statistics:
-        print("Process the mean number of exons")
-        estimates = windows.mapply(lambda x: gene_nbexons(gff,
-                                             x["seqname"],
-                                             x["start"],
-                                             x["end"]),
-                             axis=1)
-        windows["gene_nbexons"] = estimates
-
-    if "gene_density" in statistics:
-        print("Process gene density")
-        estimates = windows.mapply(lambda x: gene_density(gff,
-                                             x["seqname"],
-                                             x["start"],
-                                             x["end"]),
-                             axis=1)
-        windows["gene_density"] = estimates
-
-    if "snp_count" in statistics:
-        print("Process number of SNPs")
-        estimates = windows.mapply(lambda x: snp_count(vcf,
-                                             x["seqname"],
-                                             x["start"],
-                                             x["end"]),
-                             axis=1)
-        windows["snp_count"] = estimates
-
-    if "gc" in statistics:
-        print("Process GC content")
-        list_seq = make_dataset(windows, fasta)
-        # Compute GC content
-        estimates = list(map(lambda x: gc(x), list_seq))
-        # Add column for statistics
-        windows["gc"] = estimates
-
-    if "gc_noncoding" in statistics:
-        print("Process non-coding GC content")
-        estimates = windows.mapply(lambda x: gc_noncoding(fasta,
-                                             gff,
-                                             x["seqname"],
-                                             x["start"],
-                                             x["end"],
-                                             min_bp=min_bp),
-                             axis=1)
-        list_gc = [item[0] for item in estimates]
-        list_density = [item[1] for item in estimates]
-        # Add column for statistics
-        windows["gc_noncoding"] = list_gc
-        windows["noncoding_proportion"] = list_density
-
-    if "gc_intergenic" in statistics:
-        print("Process intergenic GC content")
-        estimates = windows.mapply(lambda x: gc_intergenic(fasta,
-                                             gff,
-                                             x["seqname"],
-                                             x["start"],
-                                             x["end"],
-                                             min_bp=min_bp),
-                             axis=1)
-        list_gc = [item[0] for item in estimates]
-        list_density = [item[1] for item in estimates]
-        # Add column for statistics
-        windows["gc_intergenic"] = list_gc
-        windows["intergenic_proportion"] = list_density
-
-    if "gc_intron" in statistics:
-        print("Process intron GC content")
-        estimates = windows.mapply(lambda x: gc_intron(fasta,
-                                             gff,
-                                             x["seqname"],
-                                             x["start"],
-                                             x["end"],
-                                             min_bp=min_bp,
-                                             splicing_strategy=splicing_strategy),
-                             axis=1)
-        list_gc = [item[0] for item in estimates]
-        list_density = [item[1] for item in estimates]
-        # Add column for statistics
-        windows["gc_intron"] = list_gc
-        windows["intron_proportion"] = list_density
-
-
-    if "gc_codon" in statistics:
-        print("Process GC content with codon positions")
-        # Compute GC content
-        estimates = windows.mapply(lambda x: gc_codon(fasta,
-                                             gff,
-                                             x["seqname"],
-                                             x["start"],
-                                             x["end"],
-                                             min_bp=min_bp),
-                             axis=1)
-        list_gc = [item[0] for item in estimates]
-        list_gc1 = [item[1] for item in estimates]
-        list_gc2 = [item[2] for item in estimates]
-        list_gc3 = [item[3] for item in estimates]
-        list_cds_proportion = [item[4] for item in estimates]
-        # Add column for statistics
-        windows["gc_codon"] = list_gc
-        windows["gc1"] = list_gc1
-        windows["gc2"] = list_gc2
-        windows["gc3"] = list_gc3
-        windows["cds_proportion"] = list_cds_proportion
-
-    if "gc3exon1" in statistics:
-        print("Process GC3 first exon")
-        estimates = windows.mapply(lambda x: gc3exon1(fasta,
-                                                     gff,
-                                                     x["seqname"],
-                                                     x["start"],
-                                                     x["end"],
-                                                     min_bp=min_bp),
-                                  axis=1)
-        windows["gc3_exon1"] = estimates
-
-    if "cpg" in statistics:
-        print("Process CpG densities")
-        list_seq = make_dataset(windows, fasta)
-        # Compute CpG density
-        estimates = list(map(lambda x: cpg(x), list_seq))
-        # Add column for statistics
-        windows["cpg"] = estimates
-
-    if "seq" in statistics:
-        print("Retrieving sequences")
-        sequences = list(map(lambda x: fasta.sample_sequence(windows.loc[x, "seqname"],
-                                                             windows.loc[x, "start"],
-                                                             windows.loc[x, "end"]),
-                             windows.index))
-        windows["seq"] = sequences
-
-    return windows
-
 
 def gene_count(gff, chromosome, start, end):
     """
@@ -306,19 +99,19 @@ def gene_density(gff, chromosome, start, end):
     return gene_density
 
 
-def snp_count(vcf, chromosome, start, end):
-    """
-    Count the number of snps in the window.
-    :param vcf: vcf, a vcf file with SNPs and their genomic positions
-    :param chromosome: str, Chromosome name
-    :param start: int, Start position of the sequence
-    :param end: int, End position of the sequence
-    :return: int, number of snps in the vcf window
-    """
-    snp_count = vcf.sample_variant(str(chromosome), int(start), int(end))
-    snp_count = sum(1 for item in snp_count)
-
-    return snp_count
+# def snp_count(vcf, chromosome, start, end):
+#     """
+#     Count the number of snps in the window.
+#     :param vcf: vcf, a vcf file with SNPs and their genomic positions
+#     :param chromosome: str, Chromosome name
+#     :param start: int, Start position of the sequence
+#     :param end: int, End position of the sequence
+#     :return: int, number of snps in the vcf window
+#     """
+#     snp_count = vcf.sample_variant(str(chromosome), int(start), int(end))
+#     snp_count = sum(1 for item in snp_count)
+#
+#     return snp_count
 
 
 
@@ -615,18 +408,3 @@ def cpg(sequence):
     else:
         cpg_density = np.NaN
     return(cpg_density)
-
-
-def pi(polymorphism):
-    """
-    Compute the Nucleotide diversity Pi at a given site (window) in a population, as described by Nei and Li in 1979.
-    :param polymorphim:
-    :return:
-
-    Reference:
-    Nei, M.; Masatoshi Nei; Wen-Hsiung Li (October 1, 1979).
-    "Mathematical Model for Studying Genetic Variation in Terms of Restriction Endonucleases". PNAS. 76 (10): 5269–73.
-    """
-    polymorphism
-
-    return pi

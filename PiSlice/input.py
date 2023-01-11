@@ -20,62 +20,65 @@ import intervaltree
 from multiprocess import Pool
 from Bio import SeqIO
 
+
+# Use read_vcf of scikit-allel and do not develop a new class
+# KISS
 # TODO Implement vcf import by sgkit
 # DEPRECATED
-class vcf(VCF):
-    """
-    Read a vcf file and return a 'vcf' object
-    inheriting the 'VCF' class from 'cyvcf2'
-    Filename is given in argument when creating the 'vcf' object
-    """
+# class vcf(VCF):
+#     """
+#     Read a vcf file and return a 'vcf' object
+#     inheriting the 'VCF' class from 'cyvcf2'
+#     Filename is given in argument when creating the 'vcf' object
+#     """
+#
+#     def sample_individual(self, samples):
+#         """
+#         Sample individuals and modify the 'vcf' object
+#         """
+#         # TODO copy the vcf instead on changing it directly
+#         # Make a list individuals to sample
+#         # TODO implement methods to sample individuals by indexes or names
+#         # Subset individuals
+#         self.set_samples(samples)
+#
+#     def sample_variant(self, chromosome, start, end):
+#         """
+#         Sample variants on a chromosome within start-end coordinates (bp)
+#          and return a generator object to iterate over the 'vcf' object
+#         """
+#         # Make a list of loci to sample
+#         # TODO
+#         # Subset loci
+#         snps = self(":".join([str(chromosome), "-".join([str(start), str(end)])]))
+#         return snps
 
-    def sample_individual(self, samples):
-        """
-        Sample individuals and modify the 'vcf' object
-        """
-        # TODO copy the vcf instead on changing it directly
-        # Make a list individuals to sample
-        # TODO implement methods to sample individuals by indexes or names
-        # Subset individuals
-        self.set_samples(samples)
-
-    def sample_variant(self, chromosome, start, end):
-        """
-        Sample variants on a chromosome within start-end coordinates (bp)
-         and return a generator object to iterate over the 'vcf' object
-        """
-        # Make a list of loci to sample
-        # TODO
-        # Subset loci
-        snps = self(":".join([str(chromosome), "-".join([str(start), str(end)])]))
-        return snps
 
 
-
-class genotype:
-    """
-    Create 'genotype' object from a 'vcf' object which contains:
-    * gt: genotypes as a 2D numpy array
-    * samples: sample names
-    * loci: locus names
-    """
-    def __init__(self, variants, chromosome, start, end):
-        # Subset a region
-        snps = variants.sample_variant(chromosome, start, end)
-        # Get names of loci
-        loci = []
-        for variant in snps:
-            loci.append(variant.ID)
-        # Set dimensions
-        df = []
-        # For loop, because cannot unpack non-iterable cyvcf2.cyvcf2.Variant object
-        snps = variants.sample_variant(chromosome, start, end)
-        for variant in snps:
-            df.append(list(variant.gt_types))
-        df = np.array(df)
-        self.gt = df
-        self.samples = variants.samples
-        self.loci = loci
+# class genotype:
+#     """
+#     Create 'genotype' object from a 'vcf' object which contains:
+#     * gt: genotypes as a 2D numpy array
+#     * samples: sample names
+#     * loci: locus names
+#     """
+#     def __init__(self, variants, chromosome, start, end):
+#         # Subset a region
+#         snps = variants.sample_variant(chromosome, start, end)
+#         # Get names of loci
+#         loci = []
+#         for variant in snps:
+#             loci.append(variant.ID)
+#         # Set dimensions
+#         df = []
+#         # For loop, because cannot unpack non-iterable cyvcf2.cyvcf2.Variant object
+#         snps = variants.sample_variant(chromosome, start, end)
+#         for variant in snps:
+#             df.append(list(variant.gt_types))
+#         df = np.array(df)
+#         self.gt = df
+#         self.samples = variants.samples
+#         self.loci = loci
 
 # TODO Testing the fasta.fetch() with testing data
 # Test Driven Dev
