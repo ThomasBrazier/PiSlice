@@ -123,9 +123,11 @@ def gc(sequence, min_bp=6):
     :param sequence: str, A string containing a DNA sequence
     :return: float, Numeric value of the GC proportion in the sequence
     """
+    sequence = str(sequence)
     if len(sequence) > min_bp:
         # Make sequence uppercase for simple computation
         sequence = sequence.upper()
+
         base_a = sequence.count("A")
         base_c = sequence.count("C")
         base_g = sequence.count("G")

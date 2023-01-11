@@ -21,7 +21,7 @@ gff = input.read_gff(gff_file)
 gff = gff.iloc[0:4000]
 chromosome = "CP002684.1"
 gff_parsed = gff.gff.parse_attributes(infer_rank=True, parse_introns=True, parse_utr=True)
-results = ps.piSlice(windows=gff_parsed, statistics=["gene_count", "gc", "gc_codon", "gc_intron"], fasta=genome, gff=gff_parsed)
+results = ps.piSlice(windows=gff_parsed, statistics=["gene_count", "gc_noncoding", "gc_intergenic", "gc", "gc_codon", "gc_intron"], fasta=genome, gff=gff_parsed)
 results
 # Bug in gc_noncoding and gc_intergenic
 #   File "/home/tbrazier/Academic/PiSlice/PiSlice/core.py", line 152, in <lambda>
