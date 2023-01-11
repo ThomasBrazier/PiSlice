@@ -48,7 +48,7 @@ def pi(vcf, chrom, start, stop):
     :chrom: string, the chromosome name
     :start: int, start position, 0 index
     :stop: int, stop position, 0 index
-    :return: pi, nucleotide diversity value
+    :return: float, pi, nucleotide diversity value
     """
     chrom = str(chrom)
     g = allel.GenotypeArray(vcf["calldata/GT"])
@@ -60,5 +60,41 @@ def pi(vcf, chrom, start, stop):
     return(pi)
 
 
+def theta_watterson(vcf, chrom, start, stop):
+    """
+    Estimate the Watterson's Theta from a vcf file within a specified interval start:stop
+    Use the scikit-allel package and vcf format
+    :vcf: a sckit-allel vcf format
+    :chrom: string, the chromosome name
+    :start: int, start position, 0 index
+    :stop: int, stop position, 0 index
+    :return: float, theta_watterson, nucleotide diversity value
+    """
+    chrom = str(chrom)
+    g = allel.GenotypeArray(vcf["calldata/GT"])
+    g = g[vcf["variants/CHROM"] == chrom]
+    ac = g.count_alleles()
+    pos = vcf["variants/POS"]
+    pos = pos[vcf["variants/CHROM"] == chrom]
+    theta_watterson = allel.watterson_theta(pos, ac, start=start, stop=stop)
+    return(theta_watterson)
 
+def tajima_d(vcf, chrom, start, stop):
+    """
+    Estimate the Watterson's Theta from a vcf file within a specified interval start:stop
+    Use the scikit-allel package and vcf format
+    :vcf: a sckit-allel vcf format
+    :chrom: string, the chromosome name
+    :start: int, start position, 0 index
+    :stop: int, stop position, 0 index
+    :return: float, theta_watterson, nucleotide diversity value
+    """
+    chrom = str(chrom)
+    g = allel.GenotypeArray(vcf["calldata/GT"])
+    g = g[vcf["variants/CHROM"] == chrom]
+    ac = g.count_alleles()
+    pos = vcf["variants/POS"]
+    pos = pos[vcf["variants/CHROM"] == chrom]
+    tajima_d = allel.tajima_d(ac, pos, start=start, stop=stop)
+    return(tajima_d)
 

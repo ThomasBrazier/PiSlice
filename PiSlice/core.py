@@ -124,6 +124,24 @@ def piSlice(windows, statistics=[""], min_bp=6, splicing_strategy="merge", n_cpu
                              axis=1)
         windows["pi"] = estimates
 
+        if "theta_watterson" in statistics:
+            print("Process Theta Watterson")
+            estimates = windows.mapply(lambda x: div.theta_watterson(vcf,
+                                                        x["seqname"],
+                                                        x["start"],
+                                                        x["end"]),
+                                       axis=1)
+            windows["theta_watterson"] = estimates
+
+    if "tajima_d" in statistics:
+        print("Process Tajima's D")
+        estimates = windows.mapply(lambda x: div.tajima_d(vcf,
+                                                                 x["seqname"],
+                                                                 x["start"],
+                                                                 x["end"]),
+                                   axis=1)
+        windows["tajima_d"] = estimates
+
     if "gc" in statistics:
         print("Process GC content")
         list_seq = make_dataset(windows, fasta)
