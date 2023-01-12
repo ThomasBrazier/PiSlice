@@ -12,14 +12,13 @@ def snp_count(vcf, chrom, start, stop):
     Use the scikit-allel package and vcf format
     :vcf: a sckit-allel vcf format
     :chrom: string, the chromosome name
-    :start: int, start position, 0 index
-    :stop: int, stop position, 0 index
+    :start: int, start position, +1 index
+    :stop: int, stop position, +1 index
     :return: snp density (snp/bp)
     """
     pos = vcf["variants/POS"]
     pos = pos[vcf["variants/CHROM"] == chrom]
-    pos = pos[pos >= start]
-    pos = pos[pos <= stop]
+    pos = pos[(pos >= start) & (pos <= stop)]
     snpcount = len(pos)
     return(snpcount)
 
@@ -30,8 +29,8 @@ def snp_density(vcf, chrom, start, stop):
     Use the scikit-allel package and vcf format
     :vcf: a sckit-allel vcf format
     :chrom: string, the chromosome name
-    :start: int, start position, 0 index
-    :stop: int, stop position, 0 index
+    :start: int, start position, +1 index
+    :stop: int, stop position, +1 index
     :return: snp density (snp/bp)
     """
     snps = snp_count(vcf, chrom, start, stop)
@@ -46,8 +45,8 @@ def pi(vcf, chrom, start, stop):
     Use the scikit-allel package and vcf format
     :vcf: a sckit-allel vcf format
     :chrom: string, the chromosome name
-    :start: int, start position, 0 index
-    :stop: int, stop position, 0 index
+    :start: int, start position, +1 index
+    :stop: int, stop position, +1 index
     :return: float, pi, nucleotide diversity value
     """
     chrom = str(chrom)
@@ -66,8 +65,8 @@ def theta_watterson(vcf, chrom, start, stop):
     Use the scikit-allel package and vcf format
     :vcf: a sckit-allel vcf format
     :chrom: string, the chromosome name
-    :start: int, start position, 0 index
-    :stop: int, stop position, 0 index
+    :start: int, start position, +1 index
+    :stop: int, stop position, +1 index
     :return: float, theta_watterson, nucleotide diversity value
     """
     chrom = str(chrom)
@@ -85,8 +84,8 @@ def tajima_d(vcf, chrom, start, stop):
     Use the scikit-allel package and vcf format
     :vcf: a sckit-allel vcf format
     :chrom: string, the chromosome name
-    :start: int, start position, 0 index
-    :stop: int, stop position, 0 index
+    :start: int, start position, +1 index
+    :stop: int, stop position, +1 index
     :return: float, theta_watterson, nucleotide diversity value
     """
     chrom = str(chrom)
