@@ -146,27 +146,38 @@ def codon_align(fasta, vcf, gff,  chromosome, start, end, ploidy=2):
     :stop: int, stop position, +1 index
     :return: list, a list of tuples of type [("sample_name","full coding sequence")]
     """
-    # keep only complete CDS/transcripts
-    gene = gff.gff.feature("gene")
-    gene = gene.gff.region(start, end, chromosome)
-    if isinstance(gene["id"], str):
-        geneid = gene["id"]
-    elif isinstance(gene["id"], pd.Series):
-        geneid = list(gene["id"])
+    # Detect from start:end coordinates if the sequence is a single exon/CDS
+    window = gff.gff.region(start, end, chromosome)
+    window = window.gff.feature("CDS")
+    if window.shape[0] == 1:
+        mrna = create_align(fasta, vcf, chromosome, start, end, ploidy=ploidy)
+        phase = window["frame"]
+        mrna = [(i, x[int(phase):]) for i, x in mrna]
+        # keep a length multiple of 3
+        mrna = [(i, x[0:(len(x) - (len(x) % 3))]) for i, x in mrna]
+        concat = mrna
     else:
-        geneid = list()
+        # keep only complete CDS/transcripts
+        gene = gff.gff.feature("gene")
+        gene = gene.gff.region(start, end, chromosome)
+        if isinstance(gene["id"], str):
+            geneid = gene["id"]
+        elif isinstance(gene["id"], pd.Series):
+            geneid = list(gene["id"])
+        else:
+            geneid = list()
 
-    mrna = list()
-    [mrna.append(transcript_align(fasta, vcf, gff, str(i), ploidy=ploidy)) for i in geneid]
-    mrna = list(chain.from_iterable(mrna))
+        mrna = list()
+        [mrna.append(transcript_align(fasta, vcf, gff, str(i), ploidy=ploidy)) for i in geneid]
+        mrna = list(chain.from_iterable(mrna))
 
-    # concatenate transcripts to get the full sequence over the region
-    # tmp = [[('a', 'aaaa'), ('b', 'ggg'), ('c', 'agtc')], [('a', 'ccc'), ('b', 'ttt'), ('c', 'agct')]]
-    tmp = mrna
-    nsamples = len(tmp[0])
-    concat = list()
-    for i in range(0, nsamples):
-        concat.append(([n[0] for n in [x[i] for x in tmp]][0], ''.join([x[1] for x in [aln[i] for aln in tmp]])))
+        # concatenate transcripts to get the full sequence over the region
+        # tmp = [[('a', 'aaaa'), ('b', 'ggg'), ('c', 'agtc')], [('a', 'ccc'), ('b', 'ttt'), ('c', 'agct')]]
+        tmp = mrna
+        nsamples = len(tmp[0])
+        concat = list()
+        for i in range(0, nsamples):
+            concat.append(([n[0] for n in [x[i] for x in tmp]][0], ''.join([x[1] for x in [aln[i] for aln in tmp]])))
 
     # Check the full CDS sequence is a multiple of 3
     checksize = list()
@@ -178,7 +189,7 @@ def codon_align(fasta, vcf, gff,  chromosome, start, end, ploidy=2):
     return(concat)
 
 
-def pi_alignment(fasta, vcf, gff,  chromosome, start, end, ploidy=2, max_missing=0.05):
+def pi_alignment(fasta, vcf,  chromosome, start, end, ploidy=2, max_missing=0.05):
     """
     Estimate Pi over a given genomic region.
     Beware that missing data is inferred ONLY for polymorphic sites from the vcf,
@@ -190,7 +201,6 @@ def pi_alignment(fasta, vcf, gff,  chromosome, start, end, ploidy=2, max_missing
     nseff is the average number of used samples among included sites
     :fasta: str, a fasta reference file
     :vcf: a sckit-allel vcf format
-    :gff: a gff object with CDS information
     :chromosome: string, the chromosome name
     :start: int, start position, +1 index
     :stop: int, stop position, +1 index
@@ -214,7 +224,7 @@ def pi_alignment(fasta, vcf, gff,  chromosome, start, end, ploidy=2, max_missing
 
 
 
-def pi_coding(fasta, vcf, gff,  chromosome, start, end, ploidy=2, max_missing=0.05):
+def pi_coding(fasta, vcf, gff, chromosome, start, end, ploidy=2, max_missing=0.05):
     """
     Estimate PiN and PiS (nucleotide diversity in non-synonymous and synonymous positions)
     over a given coding region.
