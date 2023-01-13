@@ -4,6 +4,8 @@ Estimate statistics from sequence alignments
 """
 
 import egglib
+import warnings
+from itertools import chain
 
 def create_align(fasta, vcf, chromosome, start, end, ploidy=2):
     """
@@ -54,7 +56,81 @@ def create_align(fasta, vcf, chromosome, start, end, ploidy=2):
     return(align)
 
 
-def codon_align(fasta, vcf, gff, chromosome, start, end, ploidy=2):
+def transcript_align(fasta, vcf, gff, geneid, ploidy=2):
+    """
+    Create multi-samples alignment of a single transcript
+    Requires a gene/mRNA GFF features to get a transcript
+    :fasta: str, a fasta reference file
+    :vcf: a sckit-allel vcf format
+    :gff: a gff object with CDS information
+    :geneid: string, a gene ID according to the GFF
+    :return: list, a list of tuples of type [("sample_name","full coding sequence")]
+    """
+    # keep a single transcript - the first one
+    mrna = gff.gff.children(geneid)
+    if len(mrna.gff.feature("mRNA")) > 0:
+        m = mrna.gff.feature("mRNA")
+        m = m.iloc[0]
+        m = m["id"]
+        id = m
+    else:
+        id = geneid
+
+    # get mRNA/CDS coordinates in the region
+    pos = gff.gff.children(id)
+    pos = pos.gff.feature("CDS")
+
+    # get sequences for each interval (CDS part)
+    # a list of align objects
+    # Iterating over multiple columns - differing data type
+    cdsparts = [create_align(fasta, vcf, row[0], row[1], row[2], ploidy=ploidy) for row in
+                zip(pos["seqname"], pos["start"], pos["end"]) if len(row) > 0]
+
+    # concatenate CDS sequences (exons) to get the full transcript
+    # tmp = [[('a', 'aaaa'), ('b', 'ggg'), ('c', 'agtc')], [('a', 'ccc'), ('b', 'ttt'), ('c', 'agct')]]
+    tmp = cdsparts
+    nsamples = len(tmp[0])
+    concat = list()
+    for i in range(0, nsamples):
+        concat.append(([n[0] for n in [x[i] for x in tmp]][0], ''.join([x[1] for x in [aln[i] for aln in tmp]])))
+
+    # Take care of strand
+    # Reverse '-' strand
+    strand = pos["strand"].iloc[0]
+    for idx, aln in enumerate(cdsparts):
+        if strand == "-":
+            aln = [(sample, seq[::-1]) for sample, seq in aln]
+            cdsparts[idx] = aln
+
+    # Frame shift (phase feature)
+    # While taking all CDS parts and concatenating them, no need to do a phase shift
+    # See https://github.com/The-Sequence-Ontology/Specifications/blob/master/gff3.md for details on phase
+    # frame = pos["frame"]
+    # for idx, aln in enumerate(cdsparts):
+    #     aln = [(sample, seq[int(frame.iloc[idx]):]) for sample, seq in aln]
+    #     cdsparts[idx] = aln
+
+    # clean up start and stop codons
+    # for each CDS part get 5' and 3' codons
+    # remove them if 5' == 'ATG'
+    # or 3' == ['TAA', 'TAG', 'TGA']
+    for idx, aln in enumerate(cdsparts):
+        aln = [(sample, seq[3:]) if seq[:3] == "ATG" else (sample, seq) for sample, seq in aln]
+        aln = [(sample, seq[:-3]) if (seq[-3:] == "TAA" or seq[-3:] == "TAG" or seq[-3:] == "TGA") else (sample, seq)
+               for sample, seq in aln]
+        cdsparts[idx] = aln
+
+    # Check the full CDS sequence is a multiple of 3
+    checksize = list()
+    goodsize = [True if len(seq) % 3 == 0 else False for sample, seq in concat]
+    checksize.append(goodsize)
+    if any(False in item for item in checksize):
+        warnings.warn("The CDS is not a multiple of 3 in gene:", geneid, "!")
+
+    return (cdsparts)
+
+
+def codon_align(fasta, vcf, gff,  chromosome, start, end, ploidy=2):
     """
     Create multi-samples alignment of coding sequences
     Concatenate the coding sequences over the given region
@@ -68,54 +144,30 @@ def codon_align(fasta, vcf, gff, chromosome, start, end, ploidy=2):
     :stop: int, stop position, +1 index
     :return: list, a list of tuples of type [("sample_name","full coding sequence")]
     """
-    # get CDS coordinates in the region
-    pos = gff.gff.feature("CDS")
-    pos = pos.gff.region(start, end, chromosome)
+    # keep only complete CDS/transcripts
+    gene = gff.gff.feature("gene")
+    gene = gene.gff.region(start, end, chromosome)
+    geneid = [gene["id"]]
 
-    # get sequences for each interval (CDS part)
-    # a list of align objects
-    # Iterating over multiple columns - differing data type
-    cdsparts = [align.create_align(fasta, vcf, row[0], row[1], row[2], ploidy=2) for row in zip(pos["seqname"], pos["start"], pos["end"]) if len(row) > 0]
+    mrna = list()
+    [mrna.append(transcript_align(fasta, vcf, gff, id, ploidy=ploidy)) for id in geneid]
+    mrna = list(chain.from_iterable(mrna))
 
-    # Take care of strand
-    # Reverse '-' strand
-    strand = pos["strand"]
-    for idx, aln in enumerate(cdsparts):
-        if strand.iloc[idx] == "-":
-            aln = [(sample, seq[::-1]) for sample, seq in aln]
-            cdsparts[idx] = aln
 
-    # Remove None values
-    # cdsparts = [c for c in cdsparts if c is not None]
-
-    # Frame shift (phase feature)
-    frame = pos["frame"]
-    for idx, aln in enumerate(cdsparts):
-        aln = [(sample, seq[int(frame.iloc[idx]):]) for sample, seq in aln]
-        cdsparts[idx] = aln
-
-    # clean up start and stop codons
-    # for each CDS part get 5' and 3' codons
-    # remove them if 5' == 'ATG'
-    # or 3' == ['TAA', 'TAG', 'TGA']
-    for idx, aln in enumerate(cdsparts):
-        aln = [(sample, seq[3:]) if seq[:3] == "ATG" else (sample, seq) for sample, seq in aln]
-        aln = [(sample, seq[:-3]) if (seq[-3:] == "TAA" or seq[-3:] == "TAG" or seq[-3:] == "TGA") else (sample, seq) for sample, seq in aln]
-        cdsparts[idx] = aln
-
-    # check size of the CDS part (multiple of 3 because codons take three nucleotides)
-    # Remove CDS parts with wrong size
-    # for idx, aln in enumerate(cdsparts):
-    #     aln = [(sample, seq) for sample, seq in aln if len(seq) % 3 == 0]
-    #     cdsparts[idx] = aln
-
-    # concatenate CDS sequences (exons) to get the full sequence over the region
-    tmp = [[('a', 'aaaa'), ('b', 'ggg')], [('a', 'ccc'), ('b', 'ttt')]]
-    nsamples = len(tmp)
+    # concatenate transcripts to get the full sequence over the region
+    # tmp = [[('a', 'aaaa'), ('b', 'ggg'), ('c', 'agtc')], [('a', 'ccc'), ('b', 'ttt'), ('c', 'agct')]]
+    tmp = mrna
+    nsamples = len(tmp[0])
     concat = list()
     for i in range(0, nsamples):
         concat.append(([n[0] for n in [x[i] for x in tmp]][0], ''.join([x[1] for x in [aln[i] for aln in tmp]])))
+    concat
 
     # Check the full CDS sequence is a multiple of 3
+    checksize = list()
+    goodsize = [True if len(seq) % 3 == 0 else False for sample, seq in concat]
+    checksize.append(goodsize)
+    if any(False in item for item in checksize):
+        warnings.warn("The CDS is not a multiple of 3 in gene:", geneid, "!")
 
-    return(cds)
+    return(concat)
