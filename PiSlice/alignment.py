@@ -6,6 +6,7 @@ Estimate statistics from sequence alignments
 import egglib
 import warnings
 from itertools import chain
+import pandas as pd
 
 def create_align(fasta, vcf, chromosome, start, end, ploidy=2):
     """
@@ -40,6 +41,7 @@ def create_align(fasta, vcf, chromosome, start, end, ploidy=2):
             for i, x in enumerate(idx):
                 allel = gt[:,samples == samples[j]]
                 allel = allel[i][0][(p - 1)]
+                allel = str(allel)
                 if allel == '0':
                     base = ref[i]
                 elif (allel == '1') or (allel == '2') or (allel == '3'):
@@ -147,12 +149,16 @@ def codon_align(fasta, vcf, gff,  chromosome, start, end, ploidy=2):
     # keep only complete CDS/transcripts
     gene = gff.gff.feature("gene")
     gene = gene.gff.region(start, end, chromosome)
-    geneid = [gene["id"]]
+    if isinstance(gene["id"], str):
+        geneid = gene["id"]
+    elif isinstance(gene["id"], pd.Series):
+        geneid = list(gene["id"])
+    else:
+        geneid = list()
 
     mrna = list()
-    [mrna.append(transcript_align(fasta, vcf, gff, id, ploidy=ploidy)) for id in geneid]
+    [mrna.append(transcript_align(fasta, vcf, gff, str(i), ploidy=ploidy)) for i in geneid]
     mrna = list(chain.from_iterable(mrna))
-
 
     # concatenate transcripts to get the full sequence over the region
     # tmp = [[('a', 'aaaa'), ('b', 'ggg'), ('c', 'agtc')], [('a', 'ccc'), ('b', 'ttt'), ('c', 'agct')]]
@@ -161,7 +167,6 @@ def codon_align(fasta, vcf, gff,  chromosome, start, end, ploidy=2):
     concat = list()
     for i in range(0, nsamples):
         concat.append(([n[0] for n in [x[i] for x in tmp]][0], ''.join([x[1] for x in [aln[i] for aln in tmp]])))
-    concat
 
     # Check the full CDS sequence is a multiple of 3
     checksize = list()
@@ -171,3 +176,117 @@ def codon_align(fasta, vcf, gff,  chromosome, start, end, ploidy=2):
         warnings.warn("The CDS is not a multiple of 3 in gene:", geneid, "!")
 
     return(concat)
+
+
+def pi_alignment(fasta, vcf, gff,  chromosome, start, end, ploidy=2, max_missing=0.05):
+    """
+    Estimate Pi over a given genomic region.
+    Beware that missing data is inferred ONLY for polymorphic sites from the vcf,
+    thus statistics on a genomic region can be underestimated due to the low number of missing data
+    For a discussion on this issue see https://onlinelibrary.wiley.com/doi/10.1111/1755-0998.13326
+    S is the number of polymorphic sites
+    Pi is the nucleotide diversity
+    lseff is the number of sites used for analysis (excluding those with either too many missing data or too many alleles)
+    nseff is the average number of used samples among included sites
+    :fasta: str, a fasta reference file
+    :vcf: a sckit-allel vcf format
+    :gff: a gff object with CDS information
+    :chromosome: string, the chromosome name
+    :start: int, start position, +1 index
+    :stop: int, stop position, +1 index
+    :ploidy: int, ploidy level
+    :max_missing: float, max proportion of missing data per site
+    :return: dict, S, Pi, lseff, nseff
+    """
+    # get the sequence of the region
+    sequence = create_align(fasta, vcf, chromosome, start, end, ploidy=ploidy)
+
+    # convert to Egglib object
+    aln = egglib.Align.create(sequence, alphabet=egglib.alphabets.DNA)
+
+    # compute stats
+    cs = egglib.stats.ComputeStats()
+    cs.add_stats('Pi', 'S', 'lseff', 'nseff')
+    stats = cs.process_align(aln, max_missing=max_missing)
+    stats
+
+    return(stats)
+
+
+
+def pi_coding(fasta, vcf, gff,  chromosome, start, end, ploidy=2, max_missing=0.05):
+    """
+    Estimate PiN and PiS (nucleotide diversity in non-synonymous and synonymous positions)
+    over a given coding region.
+    Beware that missing data is inferred ONLY for polymorphic sites from the vcf,
+    thus statistics on a genomic region can be underestimated due to the low number of missing data
+    For a discussion on this issue see https://onlinelibrary.wiley.com/doi/10.1111/1755-0998.13326
+    S is the number of polymorphic sites
+    Pi is the nucleotide diversity in the coding region (total, divide by lseff to get the per site value)
+    PiN is Pi for non-synonymous polymorphic positions only (per site, divided by the number of NS sites)
+    PiS is Pi for synonymous polymorphic positions only (per site, divided by the number of S sites)
+    lseff is the number of sites used for analysis (excluding those with either too many missing data or too many alleles)
+    nseff is the average number of used samples among included sites
+    nNS is the count of non-synonymous positions
+    nS is the count of synonymous positions
+    npolNS is the count of polymorphic non-synonymous positions
+    npolS is the count of polymorphic synonymous positions
+    :fasta: str, a fasta reference file
+    :vcf: a sckit-allel vcf format
+    :gff: a gff object with CDS information
+    :chromosome: string, the chromosome name
+    :start: int, start position, +1 index
+    :stop: int, stop position, +1 index
+    :ploidy: int, ploidy level
+    :max_missing: float, max proportion of missing data per site
+    :return: dict, S, Pi, PiS, PiN, lseff, nseff, nS, nNS, npolS, npolNS
+    """
+    # get the CDS of the region
+    cds = codon_align(fasta, vcf, gff, chromosome, start, end, ploidy=ploidy)
+
+    # convert to Egglib object
+    aln = egglib.Align.create(cds, alphabet=egglib.alphabets.DNA)
+
+    # compute stats
+    cs = egglib.stats.ComputeStats()
+    cs.add_stats('Pi', 'S', 'lseff', 'nseff')
+    stats_region = cs.process_align(aln, max_missing=max_missing)
+    stats_region
+
+    # get synonymous/non-synonymous positions
+    codons = aln
+    codons.to_codons()
+    synnonsyn = egglib.stats.CodingDiversity()
+    synnonsyn.process(codons, code=1, max_missing=max_missing)
+
+    # count number of sites of each class
+    npolS = synnonsyn.num_pol_S
+    npolNS = synnonsyn.num_pol_NS
+    nS = synnonsyn.num_sites_S
+    nNS = synnonsyn.num_sites_NS
+
+    # estimate PiN/PiS per polymorphic site
+    pos_S = [int(i) for i in synnonsyn.positions_S]
+    pos_NS = [int(i) for i in synnonsyn.positions_NS]
+
+    sub_S = aln.extract(pos_S)
+    cs = egglib.stats.ComputeStats()
+    cs.add_stats('Pi')
+    stats_S = cs.process_align(sub_S, max_missing=max_missing)
+    sub_NS = aln.extract(pos_NS)
+    cs = egglib.stats.ComputeStats()
+    cs.add_stats('Pi')
+    stats_NS = cs.process_align(sub_NS, max_missing=max_missing)
+
+    # create output
+    stats_synnonsyn = {
+        "PiS": stats_S["Pi"],
+        "PiN": stats_NS["Pi"],
+        "nS": nS,
+        "nNS": nNS,
+        "npolS": npolS,
+        "npolNS": npolNS
+    }
+    stats = dict(stats_region, **stats_synnonsyn)
+
+    return(stats)

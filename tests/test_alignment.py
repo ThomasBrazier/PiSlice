@@ -17,7 +17,7 @@ def test_create_align():
         ("variants/QUAL", np.array([40, 40, 40, 40])),
         ("variants/REF", np.array(['T', 'A', 'A', 'G']))
     ])
-    fasta_file = "test.fna.gz"
+    fasta_file = "tests/test.fna.gz"
     fasta = input.fasta(fasta_file)
     expected = [('A-1', 'TCCAAAACCATAAAGCCTAA'),
                 ('A-2', 'TCCAAAACCATAAAGCCTAA'),
