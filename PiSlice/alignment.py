@@ -233,8 +233,8 @@ def pi_coding(fasta, vcf, gff, chromosome, start, end, ploidy=2, max_missing=0.0
     For a discussion on this issue see https://onlinelibrary.wiley.com/doi/10.1111/1755-0998.13326
     S is the number of polymorphic sites
     Pi is the nucleotide diversity in the coding region (total, divide by lseff to get the per site value)
-    PiN is Pi for non-synonymous polymorphic positions only (per site, divided by the number of NS sites)
-    PiS is Pi for synonymous polymorphic positions only (per site, divided by the number of S sites)
+    Pi0 is Pi for non-synonymous polymorphic positions only, 0-fold degenerated (per site, divided by the number of NS sites)
+    Pi4 is Pi for synonymous polymorphic positions only, 4-fold degenerated (per site, divided by the number of S sites)
     lseff is the number of sites used for analysis (excluding those with either too many missing data or too many alleles)
     nseff is the average number of used samples among included sites
     nNS is the count of non-synonymous positions
@@ -249,7 +249,7 @@ def pi_coding(fasta, vcf, gff, chromosome, start, end, ploidy=2, max_missing=0.0
     :stop: int, stop position, +1 index
     :ploidy: int, ploidy level
     :max_missing: float, max proportion of missing data per site
-    :return: dict, S, Pi, PiS, PiN, lseff, nseff, nS, nNS, npolS, npolNS
+    :return: dict, S, Pi, Pi4, Pi0, lseff, nseff, nS, nNS, npolS, npolNS
     """
     # get the CDS of the region
     cds = codon_align(fasta, vcf, gff, chromosome, start, end, ploidy=ploidy)
@@ -290,8 +290,8 @@ def pi_coding(fasta, vcf, gff, chromosome, start, end, ploidy=2, max_missing=0.0
 
     # create output
     stats_synnonsyn = {
-        "PiS": stats_S["Pi"],
-        "PiN": stats_NS["Pi"],
+        "Pi4": stats_S["Pi"],
+        "Pi0": stats_NS["Pi"],
         "nS": nS,
         "nNS": nNS,
         "npolS": npolS,
