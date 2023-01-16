@@ -9,6 +9,7 @@ import pandas as pd
 import numpy as np
 import re
 import intervaltree
+import warnings
 
 def gene_count(gff, chromosome, start, end):
     """
@@ -77,7 +78,9 @@ def gene_nbexons(gff, chromosome, start, end):
     list_genes = genes['id'][genes['feature'] == "gene"]
     gene_nbexons = list(list_genes.apply(lambda x: max_rank(genes, x)))
     # mean = 0 if ranks have not been inferred before
-    gene_nbexons = np.mean(gene_nbexons)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", category=RuntimeWarning)
+        gene_nbexons = np.mean(gene_nbexons)
     return(gene_nbexons)
 
 def gene_density(gff, chromosome, start, end):
