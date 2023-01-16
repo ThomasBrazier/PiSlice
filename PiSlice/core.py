@@ -23,6 +23,9 @@ def piSlice(windows, statistics=[""], min_bp=6, splicing_strategy="merge", n_cpu
     fasta = kwargs.get("fasta", "")
     gff = kwargs.get("gff", "")
     vcf = kwargs.get("vcf", "")
+    ploidy = kwargs.get("ploidy", 2)
+    max_missing = kwargs.get("max_missing", 0.05)
+
     #pandarallel.initialize(nb_workers=n_cpus, progress_bar=True)
 
     # Function to subset sequences in the fasta file
@@ -277,8 +280,8 @@ def piSlice(windows, statistics=[""], min_bp=6, splicing_strategy="merge", n_cpu
                                                           windows.loc[x, "seqname"],
                                                           windows.loc[x, "start"],
                                                           windows.loc[x, "end"],
-                                                          ploidy=2,
-                                                          max_mising=0.05),
+                                                          ploidy=ploidy,
+                                                          max_missing=max_missing),
                              windows.index))
         windows["Pi.alignment"] = stats["Pi"]
         windows["S.alignment"] = stats["S"]
@@ -291,8 +294,8 @@ def piSlice(windows, statistics=[""], min_bp=6, splicing_strategy="merge", n_cpu
                                                           windows.loc[x, "seqname"],
                                                           windows.loc[x, "start"],
                                                           windows.loc[x, "end"],
-                                                          ploidy=2,
-                                                          max_mising=0.05),
+                                                          ploidy=ploidy,
+                                                          max_missing=max_missing),
                              windows.index))
         windows["Pi.coding"] = stats["Pi"]
         windows["S.coding"] = stats["S"]
