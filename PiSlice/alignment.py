@@ -189,7 +189,7 @@ def codon_align(fasta, vcf, gff,  chromosome, start, end, ploidy=2):
     return(concat)
 
 
-def pi_alignment(fasta, vcf,  chromosome, start, end, ploidy=2, max_missing=0.05):
+def pi_alignment(fasta, vcf, chromosome, start, end, ploidy=2, max_missing=0.05):
     """
     Estimate Pi over a given genomic region.
     Beware that missing data is inferred ONLY for polymorphic sites from the vcf,

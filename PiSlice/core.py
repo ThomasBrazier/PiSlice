@@ -7,6 +7,7 @@ import mapply
 import multiprocessing
 import PiSlice.diversity as div
 import PiSlice.nucleotide as nuc
+import PiSlice.alignment as align
 
 
 def piSlice(windows, statistics=[""], min_bp=6, splicing_strategy="merge", n_cpus=6, *args, **kwargs):
@@ -239,11 +240,70 @@ def piSlice(windows, statistics=[""], min_bp=6, splicing_strategy="merge", n_cpu
         windows["cpg"] = estimates
 
     if "seq" in statistics:
-        print("Retrieving sequences")
+        print("Estimating nucleotide diversity (Pi)")
         sequences = list(map(lambda x: fasta.sample_sequence(windows.loc[x, "seqname"],
-                                                             windows.loc[x, "start"],
-                                                             windows.loc[x, "end"]),
+                                              windows.loc[x, "start"],
+                                              windows.loc[x, "end"]),
                              windows.index))
         windows["seq"] = sequences
+
+    if "pi" in statistics:
+        print("Estimating nucleotide diversity (Pi) from a VCF")
+        stat = list(map(lambda x: div.pi(vcf, windows.loc[x, "seqname"],
+                                            windows.loc[x, "start"],
+                                            windows.loc[x, "end"]),
+                             windows.index))
+        windows["Pi"] = stat
+
+    if "theta_watterson" in statistics:
+        print("Estimating Theta Watterson from a VCF")
+        stat = list(map(lambda x: div.theta_watterson(vcf, windows.loc[x, "seqname"],
+                                            windows.loc[x, "start"],
+                                            windows.loc[x, "end"]),
+                             windows.index))
+        windows["Theta_Watterson"] = stat
+
+    if "tajima_d" in statistics:
+        print("Estimating Tajima's D from a VCF")
+        stat = list(map(lambda x: div.tajima_d(vcf, windows.loc[x, "seqname"],
+                                            windows.loc[x, "start"],
+                                            windows.loc[x, "end"]),
+                             windows.index))
+        windows["Tajima_D"] = stat
+
+    if "pi_alignment" in statistics:
+        print("Estimating nucleotide diversity (Pi) from sequence alignment")
+        stats = list(map(lambda x: align.pi_alignment(fasta, vcf,
+                                                          windows.loc[x, "seqname"],
+                                                          windows.loc[x, "start"],
+                                                          windows.loc[x, "end"],
+                                                          ploidy=2,
+                                                          max_mising=0.05),
+                             windows.index))
+        windows["Pi.alignment"] = stats["Pi"]
+        windows["S.alignment"] = stats["S"]
+        windows["lseff.alignment"] = stats["lseff"]
+        windows["nseff.alignment"] = stats["nseff"]
+
+    if "pi_coding" in statistics:
+        print("Estimating nucleotide diversity (Pi/PiN/PiS) in coding sequences")
+        stats = list(map(lambda x: align.pi_coding(fasta, vcf,
+                                                          windows.loc[x, "seqname"],
+                                                          windows.loc[x, "start"],
+                                                          windows.loc[x, "end"],
+                                                          ploidy=2,
+                                                          max_mising=0.05),
+                             windows.index))
+        windows["Pi.coding"] = stats["Pi"]
+        windows["S.coding"] = stats["S"]
+        windows["lseff.coding"] = stats["lseff"]
+        windows["nseff.coding"] = stats["nseff"]
+        windows["Pi4"] = stats["Pi4"]
+        windows["Pi0"] = stats["Pi0"]
+        windows["nS"] = stats["nS"]
+        windows["nNS"] = stats["nNS"]
+        windows["npolS"] = stats["npolS"]
+        windows["npolNS"] = stats["npolNS"]
+
 
     return windows
