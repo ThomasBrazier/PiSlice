@@ -43,7 +43,9 @@ def feature_length(gff, chromosome, start, end, feature="gene"):
                      (gff['start'] < int(end)) &
                      (gff['feature'] == feature)]
     feat_len = feat_count['end'] - feat_count['start'] + 1
-    feat_len = np.mean(feat_len)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", category=RuntimeWarning)
+        feat_len = np.mean(feat_len)
     return feat_len
 
 
