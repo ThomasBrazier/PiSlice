@@ -146,6 +146,9 @@ def codon_align(fasta, vcf, gff,  chromosome, start, end, ploidy=2):
     :stop: int, stop position, +1 index
     :return: list, a list of tuples of type [("sample_name","full coding sequence")]
     """
+    # Process alignment for a single exon or any window shorter than gene.
+    #  Detect with the gff if start and end are those of a single exon/CDS.
+    #  Make frame shift and reduce to multiple of three
     # Detect from start:end coordinates if the sequence is a single exon/CDS
     window = gff.gff.region(start, end, chromosome)
     window = window.gff.feature("CDS")

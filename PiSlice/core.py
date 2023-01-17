@@ -5,7 +5,11 @@ The PiSlice core function
 
 import mapply
 import multiprocessing
+
+import pandas as pd
+
 import PiSlice.diversity as div
+import PiSlice.input as input
 import PiSlice.nucleotide as nuc
 import PiSlice.alignment as align
 
@@ -27,6 +31,8 @@ def piSlice(windows, statistics=[""], min_bp=6, splicing_strategy="merge", n_cpu
     max_missing = kwargs.get("max_missing", 0.05)
 
     #pandarallel.initialize(nb_workers=n_cpus, progress_bar=True)
+
+    check_chrnames(fasta, gff, vcf)
 
     # Function to subset sequences in the fasta file
     def make_dataset(windows, fasta):
@@ -310,3 +316,74 @@ def piSlice(windows, statistics=[""], min_bp=6, splicing_strategy="merge", n_cpu
 
 
     return windows
+
+
+
+def check_chrnames(fasta, gff, vcf):
+    """
+    Check if chromosome names are the same in the three input files
+    """
+    import PiSlice.input as input
+    # Get list of names
+    if isinstance(fasta, input.fasta):
+        fasta_names = set(fasta.seqname())
+    else:
+        fasta_names = []
+
+    if isinstance(gff, pd.DataFrame):
+        gff_names = set(gff["seqname"].unique())
+    else:
+        gff_names = []
+
+    if isinstance(vcf, dict):
+        vcf_names = set(vcf["variants/CHROM"])
+    else:
+        vcf_names = []
+
+    # Compare
+    if len(fasta_names & gff_names) == 0:
+        raise ValueError("Fasta and GFF do not share chromosome names.")
+    if len(vcf_names & gff_names) == 0:
+        raise ValueError("VCF and GFF do not share chromosome names.")
+    if len(fasta_names & vcf_names) == 0:
+        raise ValueError("Fasta and VCF do not share chromosome names.")
+
+    return("Check of chromosome names passed.")
+
+
+# TODO Make windows by bp distances or nb of snps
+def make_windows(chromosome, start, end, step=100, step_unit="kb", **kwargs):
+    """
+    Return a vector of windows coordinates.
+    :step: int, size of the window
+    :step_unit: str, the unit in which to measure window size, either 'bp' or 'snp'
+    """
+    vcf = kwargs.get("vcf", "")
+    if step_unit == "snp":
+        # Check that a vcf is provided
+        if isinstance(vcf, dict):
+            tmp = vcf["variants/POS"][vcf["variants/CHROM"] == chromosome]
+            nsnps = len(tmp)
+            snpindex = [tmp[i - 1] for i in range(start, nsnps, step)]
+            startpos = snpindex
+            startend = [x - 1 for x in snpindex]
+            chrom = [chromosome for x in snpindex]
+            windows = {"seqname": chrom,
+                       "start": startpos,
+                       "end": startend}
+            windows = pd.DataFrame(windows)
+        else:
+            raise ValueError("A VCF object must be provided if window's size is specified in SNP.")
+    else:
+        if step_unit == "bp":
+            startpos = [x for x in range(start, end, step)]
+            startend = [(x + step - 1) for x in range(start, end, step)]
+            chrom = [chromosome for x in startpos]
+            windows = {"seqname": chrom,
+                       "start": startpos,
+                       "end": startend}
+            windows = pd.DataFrame(windows)
+        else:
+            raise ValueError("Step unit must be specified as 'bp' or 'snp'.")
+
+    return(windows)
