@@ -328,30 +328,29 @@ def check_chrnames(fasta, gff, vcf):
     if isinstance(fasta, input.fasta):
         fasta_names = set(fasta.seqname())
     else:
-        fasta_names = []
+        fasta_names = set()
 
     if isinstance(gff, pd.DataFrame):
         gff_names = set(gff["seqname"].unique())
     else:
-        gff_names = []
+        gff_names = set()
 
     if isinstance(vcf, dict):
         vcf_names = set(vcf["variants/CHROM"])
     else:
-        vcf_names = []
+        vcf_names = set()
 
     # Compare
-    if len(fasta_names & gff_names) == 0:
+    if len(fasta_names & gff_names) == 0 and len(fasta_names) > 0 and len(gff_names) > 0:
         raise ValueError("Fasta and GFF do not share chromosome names.")
-    if len(vcf_names & gff_names) == 0:
+    if len(vcf_names & gff_names) == 0 and len(vcf_names) > 0 and len(gff_names) > 0:
         raise ValueError("VCF and GFF do not share chromosome names.")
-    if len(fasta_names & vcf_names) == 0:
+    if len(fasta_names & vcf_names) == 0 and len(fasta_names) > 0 and len(vcf_names) > 0:
         raise ValueError("Fasta and VCF do not share chromosome names.")
 
     return("Check of chromosome names passed.")
 
 
-# TODO Make windows by bp distances or nb of snps
 def make_windows(chromosome, start, end, step=100, step_unit="kb", **kwargs):
     """
     Return a vector of windows coordinates.

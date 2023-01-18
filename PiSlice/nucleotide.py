@@ -104,21 +104,6 @@ def gene_density(gff, chromosome, start, end):
     return gene_density
 
 
-# def snp_count(vcf, chromosome, start, end):
-#     """
-#     Count the number of snps in the window.
-#     :param vcf: vcf, a vcf file with SNPs and their genomic positions
-#     :param chromosome: str, Chromosome name
-#     :param start: int, Start position of the sequence
-#     :param end: int, End position of the sequence
-#     :return: int, number of snps in the vcf window
-#     """
-#     snp_count = vcf.sample_variant(str(chromosome), int(start), int(end))
-#     snp_count = sum(1 for item in snp_count)
-#
-#     return snp_count
-
-
 
 def gc(sequence, min_bp=6):
     """
