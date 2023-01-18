@@ -41,8 +41,10 @@ def snp_density(vcf, chrom, start, stop):
 
 def pi(vcf, chrom, start, stop):
     """
-    Estimate the nucleotide diversity from a vcf file within a specified interval start:stop
+    Estimate the nucleotide diversity Pi from a vcf file within a specified interval start:stop
     Use the scikit-allel package and vcf format
+    Return the raw value of Pi over the genomic interval
+    Divide by the length of interval to get Pi per site
     :vcf: a sckit-allel vcf format
     :chrom: string, the chromosome name
     :start: int, start position, +1 index

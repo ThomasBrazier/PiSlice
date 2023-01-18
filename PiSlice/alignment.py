@@ -202,6 +202,7 @@ def pi_alignment(fasta, vcf, chromosome, start, end, ploidy=2, max_missing=0.05)
     Pi is the nucleotide diversity
     lseff is the number of sites used for analysis (excluding those with either too many missing data or too many alleles)
     nseff is the average number of used samples among included sites
+    Divide by lseff to get the value of Pi per site
     :fasta: str, a fasta reference file
     :vcf: a sckit-allel vcf format
     :chromosome: string, the chromosome name
