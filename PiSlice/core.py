@@ -331,7 +331,7 @@ def check_chrnames(fasta, gff, vcf):
         fasta_names = set()
 
     if isinstance(gff, pd.DataFrame):
-        gff_names = set(gff["seqname"].unique())
+        gff_names = set(gff["seqname"])
     else:
         gff_names = set()
 
