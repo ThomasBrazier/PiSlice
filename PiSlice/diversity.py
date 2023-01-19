@@ -4,6 +4,7 @@ Population genomics statistics estimated from a vcf file.
 """
 
 import allel
+import numpy as np
 
 
 def snp_count(vcf, chrom, start, stop):
@@ -57,11 +58,15 @@ def pi(vcf, chrom, start, stop):
     ac = g.count_alleles()
     pos = vcf["variants/POS"]
     pos = pos[vcf["variants/CHROM"] == chrom]
-    if start > stop:
-        tmp = start
-        start = stop
-        stop = tmp
-    pi = allel.sequence_diversity(pos, ac, start=start, stop=stop)
+    tmp = pos[pos >= start]
+    tmp = tmp[tmp <= stop]
+    if len(tmp) > 0:
+        if start > stop:
+            pi = allel.sequence_diversity(pos, ac, start=stop, stop=start)
+        else :
+            pi = allel.sequence_diversity(pos, ac, start=start, stop=stop)
+    else:
+        pi = np.NaN
     return(pi)
 
 
@@ -81,11 +86,15 @@ def theta_watterson(vcf, chrom, start, stop):
     ac = g.count_alleles()
     pos = vcf["variants/POS"]
     pos = pos[vcf["variants/CHROM"] == chrom]
-    if start > stop:
-        tmp = start
-        start = stop
-        stop = tmp
-    theta_watterson = allel.watterson_theta(pos, ac, start=start, stop=stop)
+    tmp = pos[pos >= start]
+    tmp = tmp[tmp <= stop]
+    if len(tmp) > 0:
+        if start > stop:
+            theta_watterson = allel.watterson_theta(pos, ac, start=stop, stop=start)
+        else:
+            theta_watterson = allel.watterson_theta(pos, ac, start=start, stop=stop)
+    else:
+        theta_watterson = np.NaN
     return(theta_watterson)
 
 def tajima_d(vcf, chrom, start, stop):
@@ -104,10 +113,14 @@ def tajima_d(vcf, chrom, start, stop):
     ac = g.count_alleles()
     pos = vcf["variants/POS"]
     pos = pos[vcf["variants/CHROM"] == chrom]
-    if start > stop:
-        tmp = start
-        start = stop
-        stop = tmp
-    tajima_d = allel.tajima_d(ac, pos, start=start, stop=stop)
+    tmp = pos[pos >= start]
+    tmp = tmp[tmp <= stop]
+    if len(tmp) > 0:
+        if start > stop:
+            tajima_d = allel.tajima_d(ac, pos, start=stop, stop=start)
+        else:
+            tajima_d = allel.tajima_d(ac, pos, start=start, stop=stop)
+    else:
+        tajima_d = np.NaN
     return(tajima_d)
 
