@@ -57,6 +57,10 @@ def pi(vcf, chrom, start, stop):
     ac = g.count_alleles()
     pos = vcf["variants/POS"]
     pos = pos[vcf["variants/CHROM"] == chrom]
+    if start > stop:
+        tmp = start
+        start = stop
+        stop = tmp
     pi = allel.sequence_diversity(pos, ac, start=start, stop=stop)
     return(pi)
 
@@ -77,6 +81,10 @@ def theta_watterson(vcf, chrom, start, stop):
     ac = g.count_alleles()
     pos = vcf["variants/POS"]
     pos = pos[vcf["variants/CHROM"] == chrom]
+    if start > stop:
+        tmp = start
+        start = stop
+        stop = tmp
     theta_watterson = allel.watterson_theta(pos, ac, start=start, stop=stop)
     return(theta_watterson)
 
@@ -96,6 +104,10 @@ def tajima_d(vcf, chrom, start, stop):
     ac = g.count_alleles()
     pos = vcf["variants/POS"]
     pos = pos[vcf["variants/CHROM"] == chrom]
+    if start > stop:
+        tmp = start
+        start = stop
+        stop = tmp
     tajima_d = allel.tajima_d(ac, pos, start=start, stop=stop)
     return(tajima_d)
 
