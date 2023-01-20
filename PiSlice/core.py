@@ -126,7 +126,7 @@ def piSlice(windows, statistics=[""], min_bp=6, splicing_strategy="merge", n_cpu
         windows["snp_density"] = estimates
 
     if "pi" in statistics:
-        print("Process nucleotide diveristy (Pi)")
+        print("Process nucleotide diversity (Pi)")
         estimates = windows.mapply(lambda x: div.pi(vcf,
                                              x["seqname"],
                                              x["start"],
@@ -134,14 +134,14 @@ def piSlice(windows, statistics=[""], min_bp=6, splicing_strategy="merge", n_cpu
                              axis=1)
         windows["pi"] = estimates
 
-        if "theta_watterson" in statistics:
-            print("Process Theta Watterson")
-            estimates = windows.mapply(lambda x: div.theta_watterson(vcf,
-                                                        x["seqname"],
-                                                        x["start"],
-                                                        x["end"]),
-                                       axis=1)
-            windows["theta_watterson"] = estimates
+    if "theta_watterson" in statistics:
+        print("Process Theta Watterson")
+        estimates = windows.mapply(lambda x: div.theta_watterson(vcf,
+                                                    x["seqname"],
+                                                    x["start"],
+                                                    x["end"]),
+                                   axis=1)
+        windows["theta_watterson"] = estimates
 
     if "tajima_d" in statistics:
         print("Process Tajima's D")
@@ -249,36 +249,12 @@ def piSlice(windows, statistics=[""], min_bp=6, splicing_strategy="merge", n_cpu
         windows["cpg"] = estimates
 
     if "seq" in statistics:
-        print("Estimating nucleotide diversity (Pi)")
+        print("Output nucleotide sequence")
         sequences = list(map(lambda x: fasta.sample_sequence(windows.loc[x, "seqname"],
                                               windows.loc[x, "start"],
                                               windows.loc[x, "end"]),
                              windows.index))
         windows["seq"] = sequences
-
-    if "pi" in statistics:
-        print("Estimating nucleotide diversity (Pi) from a VCF")
-        stat = list(map(lambda x: div.pi(vcf, windows.loc[x, "seqname"],
-                                            windows.loc[x, "start"],
-                                            windows.loc[x, "end"]),
-                             windows.index))
-        windows["Pi"] = stat
-
-    if "theta_watterson" in statistics:
-        print("Estimating Theta Watterson from a VCF")
-        stat = list(map(lambda x: div.theta_watterson(vcf, windows.loc[x, "seqname"],
-                                            windows.loc[x, "start"],
-                                            windows.loc[x, "end"]),
-                             windows.index))
-        windows["Theta_Watterson"] = stat
-
-    if "tajima_d" in statistics:
-        print("Estimating Tajima's D from a VCF")
-        stat = list(map(lambda x: div.tajima_d(vcf, windows.loc[x, "seqname"],
-                                            windows.loc[x, "start"],
-                                            windows.loc[x, "end"]),
-                             windows.index))
-        windows["Tajima_D"] = stat
 
     if "pi_alignment" in statistics:
         print("Estimating nucleotide diversity (Pi) from sequence alignment")
