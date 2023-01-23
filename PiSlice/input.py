@@ -143,7 +143,11 @@ class fasta():
         # Verify that start-end positions are not inverted (start < end)
         start = min(start, end)
         end = max(start, end)
-        return self.seq[str(chromosome)][(start - 1):end:]
+        if end > start:
+            res = self.seq[ str(chromosome)][(start - 1):end:]
+        else:
+            res = np.NaN
+        return res
 
     def sample_sequence_masked(self, chromosome, start, end, mask):
         """
@@ -158,10 +162,12 @@ class fasta():
         # Expand masked intervals
         mask = [(x - 1, y + 1) for x,y in mask]
         # Take care of Null interval objects
-        coord = intervaltree.IntervalTree.from_tuples([(start, end)])
-        [coord.chop(x, y) for x, y in tuple(mask) if x != y]
-
-        seq = [self.sample_sequence(chromosome, x[0], x[1]) for x in coord.items()]
+        if end > start:
+            coord = intervaltree.IntervalTree.from_tuples([(start, end)])
+            [coord.chop(x, y) for x, y in tuple(mask) if x != y]
+            seq = [self.sample_sequence(chromosome, x[0], x[1]) for x in coord.items()]
+        else:
+            seq = np.NaN
 
         return seq
 
