@@ -167,7 +167,7 @@ class fasta():
             [coord.chop(x, y) for x, y in tuple(mask) if x != y]
             seq = [self.sample_sequence(chromosome, x[0], x[1]) for x in coord.items()]
         else:
-            seq = np.NaN
+            seq = ""
 
         return seq
 
