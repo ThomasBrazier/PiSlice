@@ -282,7 +282,7 @@ def piSlice(windows, statistics=[""], min_bp=6, splicing_strategy="merge", n_cpu
                                                           windows.loc[x, "end"],
                                                           ploidy=ploidy,
                                                           max_missing=max_missing),
-                             axis=1))
+                             axis=1)
         windows["Pi.coding"] = [item[0] for item in stats]
         windows["S.coding"] = [item[1] for item in stats]
         windows["lseff.coding"] = [item[2] for item in stats]
