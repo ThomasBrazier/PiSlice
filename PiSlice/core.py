@@ -277,9 +277,9 @@ def piSlice(windows, statistics=[""], min_bp=6, splicing_strategy="merge", n_cpu
     if "pi_coding" in statistics:
         print("Estimating nucleotide diversity (Pi/PiN/PiS) in coding sequences")
         stats = windows.mapply(lambda x: align.pi_coding(fasta, vcf, gff,
-                                                          windows.loc[x, "seqname"],
-                                                          windows.loc[x, "start"],
-                                                          windows.loc[x, "end"],
+                                                          x["seqname"],
+                                                          x["start"],
+                                                          x["end"],
                                                           ploidy=ploidy,
                                                           max_missing=max_missing),
                              axis=1)
