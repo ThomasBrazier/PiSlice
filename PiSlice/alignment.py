@@ -54,7 +54,8 @@ def create_align(fasta, vcf, chromosome, start, end, ploidy=2):
                 temp[int(x) - 1] = str(base)
                 seq = "".join(temp)
             sample = sam + "-" + str(p)
-            align.append((sample, seq))
+            if len(seq) > 0 and isinstance(seq, str):
+                align.append((sample, seq))
     return(align)
 
 
@@ -86,7 +87,7 @@ def transcript_align(fasta, vcf, gff, geneid, ploidy=2):
     # a list of align objects
     # Iterating over multiple columns - differing data type
     cdsparts = [create_align(fasta, vcf, row[0], row[1], row[2], ploidy=ploidy) for row in
-                zip(pos["seqname"], pos["start"], pos["end"]) if len(row) > 0]
+                zip(pos["seqname"], pos["start"], pos["end"])]
 
     if len(cdsparts) > 0:
         # concatenate CDS sequences (exons) to get the full transcript
