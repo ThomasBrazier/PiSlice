@@ -54,7 +54,7 @@ def create_align(fasta, vcf, chromosome, start, end, ploidy=2):
                 temp[int(x) - 1] = str(base)
                 seq = "".join(temp)
             sample = sam + "-" + str(p)
-            if len(seq) > 0 and isinstance(seq, str):
+            if isinstance(seq, str):
                 align.append((sample, seq))
     return(align)
 
