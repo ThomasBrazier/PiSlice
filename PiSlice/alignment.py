@@ -88,48 +88,51 @@ def transcript_align(fasta, vcf, gff, geneid, ploidy=2):
     cdsparts = [create_align(fasta, vcf, row[0], row[1], row[2], ploidy=ploidy) for row in
                 zip(pos["seqname"], pos["start"], pos["end"]) if len(row) > 0]
 
-    # concatenate CDS sequences (exons) to get the full transcript
-    # tmp = [[('a', 'aaaa'), ('b', 'ggg'), ('c', 'agtc')], [('a', 'ccc'), ('b', 'ttt'), ('c', 'agct')]]
-    tmp = cdsparts
-    nsamples = len(tmp[0])
-    concat = list()
-    for i in range(0, nsamples):
-        concat.append(([n[0] for n in [x[i] for x in tmp]][0], ''.join([x[1] for x in [aln[i] for aln in tmp]])))
+    if len(cdsparts) > 0:
+        # concatenate CDS sequences (exons) to get the full transcript
+        # tmp = [[('a', 'aaaa'), ('b', 'ggg'), ('c', 'agtc')], [('a', 'ccc'), ('b', 'ttt'), ('c', 'agct')]]
+        tmp = cdsparts
+        nsamples = len(tmp[0])
+        concat = list()
+        for i in range(0, nsamples):
+            concat.append(([n[0] for n in [x[i] for x in tmp]][0], ''.join([x[1] for x in [aln[i] for aln in tmp]])))
 
-    # Take care of strand
-    # Reverse '-' strand
-    strand = pos["strand"].iloc[0]
-    for idx, aln in enumerate(cdsparts):
-        if strand == "-":
-            aln = [(sample, seq[::-1]) for sample, seq in aln]
+        # Take care of strand
+        # Reverse '-' strand
+        strand = pos["strand"].iloc[0]
+        for idx, aln in enumerate(cdsparts):
+            if strand == "-":
+                aln = [(sample, seq[::-1]) for sample, seq in aln]
+                cdsparts[idx] = aln
+
+        # Frame shift (phase feature)
+        # While taking all CDS parts and concatenating them, no need to do a phase shift
+        # See https://github.com/The-Sequence-Ontology/Specifications/blob/master/gff3.md for details on phase
+        # frame = pos["frame"]
+        # for idx, aln in enumerate(cdsparts):
+        #     aln = [(sample, seq[int(frame.iloc[idx]):]) for sample, seq in aln]
+        #     cdsparts[idx] = aln
+
+        # clean up start and stop codons
+        # for each CDS part get 5' and 3' codons
+        # remove them if 5' == 'ATG'
+        # or 3' == ['TAA', 'TAG', 'TGA']
+        for idx, aln in enumerate(cdsparts):
+            aln = [(sample, seq[3:]) if seq[:3] == "ATG" else (sample, seq) for sample, seq in aln]
+            aln = [(sample, seq[:-3]) if (seq[-3:] == "TAA" or seq[-3:] == "TAG" or seq[-3:] == "TGA") else (sample, seq)
+                   for sample, seq in aln]
             cdsparts[idx] = aln
 
-    # Frame shift (phase feature)
-    # While taking all CDS parts and concatenating them, no need to do a phase shift
-    # See https://github.com/The-Sequence-Ontology/Specifications/blob/master/gff3.md for details on phase
-    # frame = pos["frame"]
-    # for idx, aln in enumerate(cdsparts):
-    #     aln = [(sample, seq[int(frame.iloc[idx]):]) for sample, seq in aln]
-    #     cdsparts[idx] = aln
+        # Check the full CDS sequence is a multiple of 3
+        checksize = list()
+        goodsize = [True if len(seq) % 3 == 0 else False for sample, seq in concat]
+        checksize.append(goodsize)
+        if any(False in item for item in checksize):
+            warnings.warn("The CDS is not a multiple of 3 in gene:", geneid, "!")
+    else:
+        cdsparts = []
 
-    # clean up start and stop codons
-    # for each CDS part get 5' and 3' codons
-    # remove them if 5' == 'ATG'
-    # or 3' == ['TAA', 'TAG', 'TGA']
-    for idx, aln in enumerate(cdsparts):
-        aln = [(sample, seq[3:]) if seq[:3] == "ATG" else (sample, seq) for sample, seq in aln]
-        aln = [(sample, seq[:-3]) if (seq[-3:] == "TAA" or seq[-3:] == "TAG" or seq[-3:] == "TGA") else (sample, seq)
-               for sample, seq in aln]
-        cdsparts[idx] = aln
-
-    # Check the full CDS sequence is a multiple of 3
-    checksize = list()
-    goodsize = [True if len(seq) % 3 == 0 else False for sample, seq in concat]
-    checksize.append(goodsize)
-    if any(False in item for item in checksize):
-        warnings.warn("The CDS is not a multiple of 3 in gene:", geneid, "!")
-
-    return (cdsparts)
+    return(cdsparts)
 
 
 def codon_align(fasta, vcf, gff,  chromosome, start, end, ploidy=2):
