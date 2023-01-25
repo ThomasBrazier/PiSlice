@@ -90,12 +90,12 @@ def transcript_align(fasta, vcf, gff, geneid, ploidy=2):
 
     if len(cdsparts) > 0:
         # concatenate CDS sequences (exons) to get the full transcript
-        # tmp = [[('a', 'aaaa'), ('b', 'ggg'), ('c', 'agtc')], [('a', 'ccc'), ('b', 'ttt'), ('c', 'agct')]]
+        # tmp = [[(1, 'aaaa'), ('b', 'ggg'), ('c', 'agtc')], [(1, 'ccc'), ('b', 'ttt'), ('c', 'agct')]]
         tmp = cdsparts
         nsamples = len(tmp[0])
         concat = list()
         for i in range(0, nsamples):
-            concat.append(([n[0] for n in [x[i] for x in tmp]][0], ''.join([x[1] for x in [aln[i] for aln in tmp]])))
+            concat.append(([n[0] for n in [x[i] for x in tmp]][0], ''.join([x[1] if isinstance(x[1], str) else "" for x in [aln[i] for aln in tmp]])))
 
         # Take care of strand
         # Reverse '-' strand
