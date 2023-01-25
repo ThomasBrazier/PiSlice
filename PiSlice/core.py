@@ -258,38 +258,41 @@ def piSlice(windows, statistics=[""], min_bp=6, splicing_strategy="merge", n_cpu
 
     if "pi_alignment" in statistics:
         print("Estimating nucleotide diversity (Pi) from sequence alignment")
-        stats = list(map(lambda x: align.pi_alignment(fasta, vcf,
-                                                          windows.loc[x, "seqname"],
-                                                          windows.loc[x, "start"],
-                                                          windows.loc[x, "end"],
+        stats = windows.mapply(lambda x: align.pi_alignment(fasta, vcf,
+                                                          x["seqname"],
+                                                          x["start"],
+                                                          x["end"],
                                                           ploidy=ploidy,
                                                           max_missing=max_missing),
-                             windows.index))
-        windows["Pi.alignment"] = stats["Pi"]
-        windows["S.alignment"] = stats["S"]
-        windows["lseff.alignment"] = stats["lseff"]
-        windows["nseff.alignment"] = stats["nseff"]
+                             axis=1)
+        # windows["Pi.alignment"] = stats["Pi"]
+        # windows["S.alignment"] = stats["S"]
+        # windows["lseff.alignment"] = stats["lseff"]
+        # windows["nseff.alignment"] = stats["nseff"]
+        windows["Pi.alignment"] = [item[0] for item in stats]
+        windows["S.alignment"] = [item[1] for item in stats]
+        windows["lseff.alignment"] = [item[2] for item in stats]
+        windows["nseff.alignment"] = [item[3] for item in stats]
 
     if "pi_coding" in statistics:
         print("Estimating nucleotide diversity (Pi/PiN/PiS) in coding sequences")
-        stats = list(map(lambda x: align.pi_coding(fasta, vcf,
+        stats = windows.mapply(lambda x: align.pi_coding(fasta, vcf, gff,
                                                           windows.loc[x, "seqname"],
                                                           windows.loc[x, "start"],
                                                           windows.loc[x, "end"],
                                                           ploidy=ploidy,
                                                           max_missing=max_missing),
-                             windows.index))
-        windows["Pi.coding"] = stats["Pi"]
-        windows["S.coding"] = stats["S"]
-        windows["lseff.coding"] = stats["lseff"]
-        windows["nseff.coding"] = stats["nseff"]
-        windows["Pi4"] = stats["Pi4"]
-        windows["Pi0"] = stats["Pi0"]
-        windows["nS"] = stats["nS"]
-        windows["nNS"] = stats["nNS"]
-        windows["npolS"] = stats["npolS"]
-        windows["npolNS"] = stats["npolNS"]
-
+                             axis=1))
+        windows["Pi.coding"] = [item[0] for item in stats]
+        windows["S.coding"] = [item[1] for item in stats]
+        windows["lseff.coding"] = [item[2] for item in stats]
+        windows["nseff.coding"] = [item[3] for item in stats]
+        windows["Pi4"] = [item[4] for item in stats]
+        windows["Pi0"] = [item[5] for item in stats]
+        windows["nS"] = [item[6] for item in stats]
+        windows["nNS"] = [item[7] for item in stats]
+        windows["npolS"] = [item[8] for item in stats]
+        windows["npolNS"] = [item[9] for item in stats]
 
     return windows
 
