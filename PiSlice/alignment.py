@@ -128,7 +128,7 @@ def transcript_align(fasta, vcf, gff, geneid, ploidy=2):
         goodsize = [True if len(seq) % 3 == 0 else False for sample, seq in concat]
         checksize.append(goodsize)
         if any(False in item for item in checksize):
-            warnings.warn("The CDS is not a multiple of 3 in gene:", geneid, "!")
+            warnings.warn("The CDS is not a multiple of 3 in gene:" + geneid + "!")
     else:
         cdsparts = []
 
