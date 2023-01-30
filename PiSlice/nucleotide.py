@@ -113,25 +113,28 @@ def gc(sequence, min_bp=6):
     :param sequence: str, A string containing a DNA sequence
     :return: float, Numeric value of the GC proportion in the sequence
     """
-    sequence = str(sequence)
-    if len(sequence) > min_bp:
-        # Make sequence uppercase for simple computation
-        sequence = sequence.upper()
+    if isinstance(sequence, str):
+        # sequence = str(sequence)
+        if len(sequence) > min_bp:
+            # Make sequence uppercase for simple computation
+            sequence = sequence.upper()
 
-        base_a = sequence.count("A")
-        base_c = sequence.count("C")
-        base_g = sequence.count("G")
-        base_t = sequence.count("T")
-        try:
-            gc_content = (base_g + base_c)/(base_a + base_c + base_g + base_t)
-        except ZeroDivisionError:
+            base_a = sequence.count("A")
+            base_c = sequence.count("C")
+            base_g = sequence.count("G")
+            base_t = sequence.count("T")
+            try:
+                gc_content = (base_g + base_c)/(base_a + base_c + base_g + base_t)
+            except ZeroDivisionError:
+                gc_content = np.NaN
+            # Do not use the GC calculation from Biopython
+            # Because it does not deal with 'N' nucleotides
+            # gc_content = GC(sequence)/100
+        else:
             gc_content = np.NaN
-        # Do not use the GC calculation from Biopython
-        # Because it does not deal with 'N' nucleotides
-        # gc_content = GC(sequence)/100
+        return gc_content
     else:
-        gc_content = np.NaN
-    return gc_content
+        return np.NaN
 
 
 # TODO GC exact computation to account for ambiguous nucleotides S(G or C)
@@ -390,13 +393,16 @@ def cpg(sequence):
     :param sequence: str, a fasta sequence
     :return: float, a CpG density
     """
-    if len(sequence) > 6:
-        sequence = sequence.upper()
-        if "CG" in sequence:
-            seq_len = len(re.findall("[ATCGatcg]", sequence))
-            cpg_density = sequence.count('CG')/(seq_len/2)
+    if (isinstance(sequence, str)):
+        if len(sequence) > 6:
+            sequence = sequence.upper()
+            if "CG" in sequence:
+                seq_len = len(re.findall("[ATCGatcg]", sequence))
+                cpg_density = sequence.count('CG')/(seq_len/2)
+            else:
+                cpg_density = 0
         else:
-            cpg_density = 0
+            cpg_density = np.NaN
+        return(cpg_density)
     else:
-        cpg_density = np.NaN
-    return(cpg_density)
+        return(np.NaN)
