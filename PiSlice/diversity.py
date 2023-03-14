@@ -112,18 +112,22 @@ def pi(vcf, chrom, start, stop):
     chrom = str(chrom)
     g = allel.GenotypeArray(vcf["calldata/GT"])
     g = g[vcf["variants/CHROM"] == chrom]
-    ac = g.count_alleles()
-    pos = vcf["variants/POS"]
-    pos = pos[vcf["variants/CHROM"] == chrom]
-    tmp = pos[pos >= start]
-    tmp = tmp[tmp <= stop]
-    if len(tmp) > 0:
-        if start > stop:
-            pi = allel.sequence_diversity(pos, ac, start=stop, stop=start)
-        else :
-            pi = allel.sequence_diversity(pos, ac, start=start, stop=stop)
-    else:
+    try:
+        ac = g.count_alleles()
+        pos = vcf["variants/POS"]
+        pos = pos[vcf["variants/CHROM"] == chrom]
+        tmp = pos[pos >= start]
+        tmp = tmp[tmp <= stop]
+        if len(tmp) > 0:
+            if start > stop:
+                pi = allel.sequence_diversity(pos, ac, start=stop, stop=start)
+            else:
+                pi = allel.sequence_diversity(pos, ac, start=start, stop=stop)
+        else:
+            pi = np.NaN
+    except ValueError:
         pi = np.NaN
+
     return(pi)
 
 
