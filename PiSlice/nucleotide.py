@@ -211,7 +211,7 @@ def gc_codon(fasta, gff, chromosome, start, end, min_bp=6):
         # Take care of short sequences (typically < 6bp) that introduce errors below
         # Remove sequences shorter than the required number of nucleotides
         # list_seq = list(map(lambda x: x.upper(), list_seq))
-        length_seq = list(map(lambda x: len(re.findall("[ATCGatcg]", x)), list_seq))
+        length_seq = list(map(lambda x: len(re.findall("[ATCGatcg]", str(x))), list_seq))
         # Reduce the dataset
         feat = feat.loc[list(map(lambda x: int(x) > min_bp, length_seq))]
         list_seq = list(feat.apply(lambda x: fasta.sample_sequence(x["seqname"], x["start"], x["end"]), axis=1))
