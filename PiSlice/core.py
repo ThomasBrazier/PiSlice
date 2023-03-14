@@ -107,51 +107,6 @@ def piSlice(windows, statistics=[""], min_bp=6, splicing_strategy="merge", n_cpu
                              axis=1)
         windows["gene_density"] = estimates
 
-    if "snp_count" in statistics:
-        print("Process number of SNPs")
-        estimates = windows.mapply(lambda x: div.snp_count(vcf,
-                                             x["seqname"],
-                                             x["start"],
-                                             x["end"]),
-                             axis=1)
-        windows["snp_count"] = estimates
-
-    if "snp_density" in statistics:
-        print("Process SNP density")
-        estimates = windows.mapply(lambda x: div.snp_density(vcf,
-                                             x["seqname"],
-                                             x["start"],
-                                             x["end"]),
-                             axis=1)
-        windows["snp_density"] = estimates
-
-    if "pi" in statistics:
-        print("Process nucleotide diversity (Pi)")
-        estimates = windows.mapply(lambda x: div.pi(vcf,
-                                             x["seqname"],
-                                             x["start"],
-                                             x["end"]),
-                             axis=1)
-        windows["pi"] = estimates
-
-    if "theta_watterson" in statistics:
-        print("Process Theta Watterson")
-        estimates = windows.mapply(lambda x: div.theta_watterson(vcf,
-                                                    x["seqname"],
-                                                    x["start"],
-                                                    x["end"]),
-                                   axis=1)
-        windows["theta_watterson"] = estimates
-
-    if "tajima_d" in statistics:
-        print("Process Tajima's D")
-        estimates = windows.mapply(lambda x: div.tajima_d(vcf,
-                                                                 x["seqname"],
-                                                                 x["start"],
-                                                                 x["end"]),
-                                   axis=1)
-        windows["tajima_d"] = estimates
-
     if "gc" in statistics:
         print("Process GC content")
         list_seq = make_dataset(windows, fasta)
@@ -159,6 +114,30 @@ def piSlice(windows, statistics=[""], min_bp=6, splicing_strategy="merge", n_cpu
         estimates = list(map(lambda x: nuc.gc(x), list_seq))
         # Add column for statistics
         windows["gc"] = estimates
+
+    if "missing_nucleotide" in statistics:
+        print("Process missing nucleotide count (N bases)")
+        list_seq = make_dataset(windows, fasta)
+        # Compute GC content
+        estimates = list(map(lambda x: nuc.missing_nucleotide(x), list_seq))
+        # Add column for statistics
+        windows["missing_nucleotide"] = estimates
+
+    if "gc_count" in statistics:
+        print("Process GC nucleotide count")
+        list_seq = make_dataset(windows, fasta)
+        # Compute GC content
+        estimates = list(map(lambda x: nuc.gc_count(x), list_seq))
+        # Add column for statistics
+        windows["gc_count"] = estimates
+
+    if "at_count" in statistics:
+        print("Process AT nucleotide count")
+        list_seq = make_dataset(windows, fasta)
+        # Compute GC content
+        estimates = list(map(lambda x: nuc.at_count(x), list_seq))
+        # Add column for statistics
+        windows["at_count"] = estimates
 
     if "gc_noncoding" in statistics:
         print("Process non-coding GC content")
@@ -247,6 +226,71 @@ def piSlice(windows, statistics=[""], min_bp=6, splicing_strategy="merge", n_cpu
         estimates = list(map(lambda x: nuc.cpg(x), list_seq))
         # Add column for statistics
         windows["cpg"] = estimates
+
+
+    if "snp_count" in statistics:
+        print("Process number of SNPs")
+        estimates = windows.mapply(lambda x: div.snp_count(vcf,
+                                             x["seqname"],
+                                             x["start"],
+                                             x["end"]),
+                             axis=1)
+        windows["snp_count"] = estimates
+
+    if "snp_count_at" in statistics:
+        print("Process number of A+T SNPs")
+        estimates = windows.mapply(lambda x: div.snp_count_at(vcf,
+                                             x["seqname"],
+                                             x["start"],
+                                             x["end"]),
+                             axis=1)
+        windows["snp_count_at"] = estimates
+
+    if "snp_count_gc" in statistics:
+        print("Process number of G+C SNPs")
+        estimates = windows.mapply(lambda x: div.snp_count_gc(vcf,
+                                             x["seqname"],
+                                             x["start"],
+                                             x["end"]),
+                             axis=1)
+        windows["snp_count_gc"] = estimates
+
+    if "snp_density" in statistics:
+        print("Process SNP density")
+        estimates = windows.mapply(lambda x: div.snp_density(vcf,
+                                             x["seqname"],
+                                             x["start"],
+                                             x["end"]),
+                             axis=1)
+        windows["snp_density"] = estimates
+
+    if "pi" in statistics:
+        print("Process nucleotide diversity (Pi)")
+        estimates = windows.mapply(lambda x: div.pi(vcf,
+                                             x["seqname"],
+                                             x["start"],
+                                             x["end"]),
+                             axis=1)
+        windows["pi"] = estimates
+
+    if "theta_watterson" in statistics:
+        print("Process Theta Watterson")
+        estimates = windows.mapply(lambda x: div.theta_watterson(vcf,
+                                                    x["seqname"],
+                                                    x["start"],
+                                                    x["end"]),
+                                   axis=1)
+        windows["theta_watterson"] = estimates
+
+    if "tajima_d" in statistics:
+        print("Process Tajima's D")
+        estimates = windows.mapply(lambda x: div.tajima_d(vcf,
+                                                                 x["seqname"],
+                                                                 x["start"],
+                                                                 x["end"]),
+                                   axis=1)
+        windows["tajima_d"] = estimates
+
 
     if "seq" in statistics:
         print("Output nucleotide sequence")
