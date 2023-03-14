@@ -35,22 +35,22 @@ def snp_count_at(vcf, chrom, start, stop):
     :return: Number of AT SNPs
     """
     pos = vcf["variants/POS"]
-
-    A_ref = pos[vcf["variants/REF"] == "A"]
-    T_ref = pos[vcf["variants/REF"] == "T"]
-    A_alt = pos[["A" in i for i in vcf["variants/ALT"]]]
-    T_alt = pos[["T" in i for i in vcf["variants/ALT"]]]
-    AT_pos = list(set(A_ref) & set(T_alt)) + list(set(T_ref) & set(A_alt))
-    AT_pos.sort()
-
     pos = pos[vcf["variants/CHROM"] == chrom]
 
-    tmp = list(set(pos) & set(AT_pos))
-    tmp.sort()
-    tmp = np.asarray(tmp)
+    snp_ref = vcf["variants/REF"]
+    snp_ref = snp_ref[vcf["variants/CHROM"] == chrom]
+    snp_ref = snp_ref[(pos >= start) & (pos <= stop)]
 
-    tmp = tmp[(tmp >= start) & (tmp <= stop)]
-    snpcount = len(tmp)
+    snp_alt = vcf["variants/ALT"]
+    snp_alt = snp_alt[vcf["variants/CHROM"] == chrom]
+    snp_alt = snp_alt[(pos >= start) & (pos <= stop)]
+
+    A_ref = (snp_ref == "A")
+    T_ref = (snp_ref == "T")
+    A_alt = ["A" in i for i in snp_alt]
+    T_alt = ["T" in i for i in snp_alt]
+    snpcount = sum(A_ref & T_alt) + sum(T_ref & A_alt)
+
     return(snpcount)
 
 
@@ -65,22 +65,21 @@ def snp_count_gc(vcf, chrom, start, stop):
     :return: Number of AT SNPs
     """
     pos = vcf["variants/POS"]
-
-    G_ref = pos[vcf["variants/REF"] == "G"]
-    C_ref = pos[vcf["variants/REF"] == "C"]
-    G_alt = pos[["G" in i for i in vcf["variants/ALT"]]]
-    C_alt = pos[["C" in i for i in vcf["variants/ALT"]]]
-    GC_pos = list(set(G_ref) & set(C_alt)) + list(set(C_ref) & set(G_alt))
-    GC_pos.sort()
-
     pos = pos[vcf["variants/CHROM"] == chrom]
 
-    tmp = list(set(pos) & set(GC_pos))
-    tmp.sort()
-    tmp = np.asarray(tmp)
+    snp_ref = vcf["variants/REF"]
+    snp_ref = snp_ref[vcf["variants/CHROM"] == chrom]
+    snp_ref = snp_ref[(pos >= start) & (pos <= stop)]
 
-    tmp = tmp[(tmp >= start) & (tmp <= stop)]
-    snpcount = len(tmp)
+    snp_alt = vcf["variants/ALT"]
+    snp_alt = snp_alt[vcf["variants/CHROM"] == chrom]
+    snp_alt = snp_alt[(pos >= start) & (pos <= stop)]
+
+    G_ref = (snp_ref == "G")
+    C_ref = (snp_ref == "C")
+    G_alt = ["G" in i for i in snp_alt]
+    C_alt = ["C" in i for i in snp_alt]
+    snpcount = sum(G_ref & C_alt) + sum(C_ref & G_alt)
     return(snpcount)
 
 def snp_density(vcf, chrom, start, stop):
