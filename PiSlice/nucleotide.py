@@ -137,6 +137,47 @@ def gc(sequence, min_bp=6):
         return np.NaN
 
 
+def gc_count(sequence):
+    """
+    Count the number of G+C nucleotides in a DNA sequence.
+    :param sequence: str, A string containing a DNA sequence
+    """
+    if isinstance(sequence, str):
+        sequence = sequence.upper()
+        base_c = sequence.count("C")
+        base_g = sequence.count("G")
+        gc_count = base_g + base_c
+        return gc_count
+    else:
+        return np.NaN
+
+def at_count(sequence):
+    """
+    Count the number of A+T nucleotides in a DNA sequence.
+    :param sequence: str, A string containing a DNA sequence
+    """
+    if isinstance(sequence, str):
+        sequence = sequence.upper()
+        base_a = sequence.count("A")
+        base_t = sequence.count("T")
+        at_count = base_a + base_t
+        return at_count
+    else:
+        return np.NaN
+
+def missing_nucleotide(sequence):
+    """
+    Count the number of missing nucleotides in a DNA sequence.
+    :param sequence: str, A string containing a DNA sequence
+    """
+    if isinstance(sequence, str):
+        sequence = sequence.upper()
+        missing_nuc = sequence.count("N")
+        return missing_nuc
+    else:
+        return np.NaN
+
+
 # TODO GC exact computation to account for ambiguous nucleotides S(G or C)
 
 
