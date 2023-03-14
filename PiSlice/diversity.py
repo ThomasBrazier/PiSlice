@@ -47,6 +47,7 @@ def snp_count_at(vcf, chrom, start, stop):
 
     tmp = list(set(pos) & set(AT_pos))
     tmp.sort()
+    tmp = np.asarray(tmp)
 
     tmp = tmp[(tmp >= start) & (tmp <= stop)]
     snpcount = len(tmp)
@@ -76,6 +77,7 @@ def snp_count_gc(vcf, chrom, start, stop):
 
     tmp = list(set(pos) & set(GC_pos))
     tmp.sort()
+    tmp = np.asarray(tmp)
 
     tmp = tmp[(tmp >= start) & (tmp <= stop)]
     snpcount = len(tmp)
