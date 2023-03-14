@@ -1,3 +1,4 @@
+
 # Test the VCF nucleotide diversity part
 import PiSlice.core as ps
 import allel
@@ -6,11 +7,11 @@ import pandas as pd
 vcf_path = "tests/test.vcf.gz"
 vcf = allel.read_vcf(vcf_path)
 
-data = [["1", 1, 9999], ["1", 10000, 19999], ["1", 20000, 29999]]
+data = [["1", 1, 999], ["1", 100, 199], ["1", 20000, 29999]]
 windows = pd.DataFrame(data, columns=["seqname", "start", "end"])
 windows
 
-results = ps.piSlice(windows=windows, statistics=["snp_count", "snp_density", "pi", "theta_watterson", "tajima_d"], vcf=vcf)
+results = ps.piSlice(windows=windows, statistics=["snp_count", "snp_density", "snp_count_at", "snp_count_gc", "pi", "theta_watterson", "tajima_d"], vcf=vcf)
 results
 
 import PiSlice.input as input

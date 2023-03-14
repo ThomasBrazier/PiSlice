@@ -49,7 +49,10 @@ def snp_count_at(vcf, chrom, start, stop):
     T_ref = (snp_ref == "T")
     A_alt = ["A" in i for i in snp_alt]
     T_alt = ["T" in i for i in snp_alt]
-    snpcount = sum(A_ref & T_alt) + sum(T_ref & A_alt)
+    try:
+        snpcount = sum(A_ref & T_alt) + sum(T_ref & A_alt)
+    except TypeError:
+        snpcount = np.NaN
 
     return(snpcount)
 
@@ -79,7 +82,10 @@ def snp_count_gc(vcf, chrom, start, stop):
     C_ref = (snp_ref == "C")
     G_alt = ["G" in i for i in snp_alt]
     C_alt = ["C" in i for i in snp_alt]
-    snpcount = sum(G_ref & C_alt) + sum(C_ref & G_alt)
+    try:
+        snpcount = sum(G_ref & C_alt) + sum(C_ref & G_alt)
+    except TypeError:
+        snpcount = np.NaN
     return(snpcount)
 
 def snp_density(vcf, chrom, start, stop):
