@@ -10,7 +10,6 @@ Functions in this module import .fasta, .gff, .vcf and coordinate files in appro
 # TODO Create a global unified and consistent 'genomic' object that contain all data in slots: genome sequence, features, snps and associated metadata
 import pandas as pd
 from cyvcf2 import VCF
-import pandas
 import numpy as np
 import gzip
 import re

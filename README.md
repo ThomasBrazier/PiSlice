@@ -25,7 +25,7 @@ Output to STDOUT or files.
 ### Dependencies
 
 * ‘pandas‘
-* ‘pysam‘ to read fasta files and ‘sammtools faidx‘ is a dependency of ‘pysam‘
+* ‘pysam‘ to read fasta files and ‘samtools faidx‘ is a dependency of ‘pysam‘
 * ‘cyvcf2‘ to read and manipulate population genetics dataset in vcf format
 * ‘htslib‘ for bgzipped fasta
 
