@@ -185,6 +185,7 @@ class fasta():
 
 # Extending Pandas with new methods for gff
 # Accessible by the gff namespace
+import pandas
 @pandas.api.extensions.register_dataframe_accessor("gff")
 class GffAccessor:
     """
