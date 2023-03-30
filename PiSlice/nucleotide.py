@@ -71,15 +71,17 @@ def gene_nbexons(gff, chromosome, start, end):
     :param end: int, End position of the sequence
     :return: int, mean number of exons per gene
     """
-    genes = gff[(gff['seqname'] == str(chromosome)) &
-               (gff['start'] >= int(start)) &
-               (gff['start'] < int(end))].copy()
-    # TODO Parse only if ranks have not been inferred
-    # genes = genes.gff.parse_attributes(infer_rank=True, verbose=False)
-    # Max rank for each gene
-    list_genes = genes['id'][genes['feature'] == "gene"]
-    gene_nbexons = list(list_genes.apply(lambda x: max_rank(genes, x)))
-    # mean = 0 if ranks have not been inferred before
+    try:
+        genes = gff[(gff['seqname'] == str(chromosome)) &
+                   (gff['start'] >= int(start)) &
+                   (gff['start'] < int(end))].copy()
+        # TODO Parse only if ranks have not been inferred
+        # genes = genes.gff.parse_attributes(infer_rank=True, verbose=False)
+        # Max rank for each gene
+        list_genes = genes['id'][genes['feature'] == "gene"]
+        gene_nbexons = list(list_genes.apply(lambda x: max_rank(genes, x)))
+    except TypeError:
+        gene_nbexons = np.NaN
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", category=RuntimeWarning)
         gene_nbexons = np.mean(gene_nbexons)
