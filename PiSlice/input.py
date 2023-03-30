@@ -587,8 +587,7 @@ def read_gff(gff_file, parse=False, parse_introns=False, parse_utr=False, infer_
         file = gzip.open(gff_file, 'r')
         gff = pandas.read_csv(file, sep="\t", comment="#", low_memory=False,
                               names=["seqname", "source", "feature", "start", "end",
-                                     "score", "strand", "frame", "attribute"],
-                              low_memory=False)
+                                     "score", "strand", "frame", "attribute"])
         file.close()
         # Parse attributes
         if (parse):
