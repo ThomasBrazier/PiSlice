@@ -24,15 +24,18 @@ def snp_count(vcf, chrom, start, stop):
     return(snpcount)
 
 
-def snp_count_at(vcf, chrom, start, stop):
+def snp_count_combination(vcf, chrom, start, stop, base1, base2):
     """
-    Count the number of AT SNPs from a vcf file within a specified interval start:stop
+    Count the number of SNPs corresponding to a given combination of two nucleotides
+    from a vcf file within a specified interval start:stop
     Use the scikit-allel package and vcf format
     :vcf: a sckit-allel vcf format
     :chrom: string, the chromosome name
     :start: int, start position, +1 index
     :stop: int, stop position, +1 index
-    :return: Number of AT SNPs
+    :base1: a nucleotide, either A, C, T, G
+    :base2: the other nucleotide
+    :return: Number of AG SNPs
     """
     pos = vcf["variants/POS"]
     pos = pos[vcf["variants/CHROM"] == chrom]
@@ -45,15 +48,28 @@ def snp_count_at(vcf, chrom, start, stop):
     snp_alt = snp_alt[vcf["variants/CHROM"] == chrom]
     snp_alt = snp_alt[(pos >= start) & (pos <= stop)]
 
-    A_ref = (snp_ref == "A")
-    T_ref = (snp_ref == "T")
-    A_alt = ["A" in i for i in snp_alt]
-    T_alt = ["T" in i for i in snp_alt]
+    ref1 = (snp_ref == chr(base1))
+    ref2 = (snp_ref == chr(base2))
+    alt1 = [chr(base1) in i for i in snp_alt]
+    alt2 = [chr(base2) in i for i in snp_alt]
     try:
-        snpcount = sum(A_ref & T_alt) + sum(T_ref & A_alt)
+        snpcount = sum(ref1 & alt1) + sum(ref2 & alt2)
     except TypeError:
         snpcount = np.NaN
+    return(snpcount)
 
+
+def snp_count_at(vcf, chrom, start, stop):
+    """
+    Count the number of AT SNPs from a vcf file within a specified interval start:stop
+    Use the scikit-allel package and vcf format
+    :vcf: a sckit-allel vcf format
+    :chrom: string, the chromosome name
+    :start: int, start position, +1 index
+    :stop: int, stop position, +1 index
+    :return: Number of AT SNPs
+    """
+    snpcount = snp_count_combination(vcf, chrom, start, stop, "A", "T")
     return(snpcount)
 
 
@@ -65,28 +81,50 @@ def snp_count_gc(vcf, chrom, start, stop):
     :chrom: string, the chromosome name
     :start: int, start position, +1 index
     :stop: int, stop position, +1 index
-    :return: Number of AT SNPs
+    :return: Number of GC SNPs
     """
-    pos = vcf["variants/POS"]
-    pos = pos[vcf["variants/CHROM"] == chrom]
-
-    snp_ref = vcf["variants/REF"]
-    snp_ref = snp_ref[vcf["variants/CHROM"] == chrom]
-    snp_ref = snp_ref[(pos >= start) & (pos <= stop)]
-
-    snp_alt = vcf["variants/ALT"]
-    snp_alt = snp_alt[vcf["variants/CHROM"] == chrom]
-    snp_alt = snp_alt[(pos >= start) & (pos <= stop)]
-
-    G_ref = (snp_ref == "G")
-    C_ref = (snp_ref == "C")
-    G_alt = ["G" in i for i in snp_alt]
-    C_alt = ["C" in i for i in snp_alt]
-    try:
-        snpcount = sum(G_ref & C_alt) + sum(C_ref & G_alt)
-    except TypeError:
-        snpcount = np.NaN
+    snpcount = snp_count_combination(vcf, chrom, start, stop, "G", "C")
     return(snpcount)
+
+def snp_count_ag(vcf, chrom, start, stop):
+    """
+    Count the number of AG SNPs from a vcf file within a specified interval start:stop
+    Use the scikit-allel package and vcf format
+    :vcf: a sckit-allel vcf format
+    :chrom: string, the chromosome name
+    :start: int, start position, +1 index
+    :stop: int, stop position, +1 index
+    :return: Number of AG SNPs
+    """
+    snpcount = snp_count_combination(vcf, chrom, start, stop, "A", "G")
+    return(snpcount)
+
+def snp_count_ac(vcf, chrom, start, stop):
+    """
+    Count the number of AC SNPs from a vcf file within a specified interval start:stop
+    Use the scikit-allel package and vcf format
+    :vcf: a sckit-allel vcf format
+    :chrom: string, the chromosome name
+    :start: int, start position, +1 index
+    :stop: int, stop position, +1 index
+    :return: Number of AC SNPs
+    """
+    snpcount = snp_count_combination(vcf, chrom, start, stop, "A", "C")
+    return(snpcount)
+
+def snp_count_gt(vcf, chrom, start, stop):
+    """
+    Count the number of GT SNPs from a vcf file within a specified interval start:stop
+    Use the scikit-allel package and vcf format
+    :vcf: a sckit-allel vcf format
+    :chrom: string, the chromosome name
+    :start: int, start position, +1 index
+    :stop: int, stop position, +1 index
+    :return: Number of GT SNPs
+    """
+    snpcount = snp_count_combination(vcf, chrom, start, stop, "G", "T")
+    return(snpcount)
+
 
 def snp_density(vcf, chrom, start, stop):
     """

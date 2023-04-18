@@ -246,6 +246,33 @@ def piSlice(windows, statistics=[""], min_bp=6, splicing_strategy="merge", n_cpu
                              axis=1)
         windows["snp_count_at"] = estimates
 
+    if "snp_count_ag" in statistics:
+        print("Process number of A+G SNPs")
+        estimates = windows.mapply(lambda x: div.snp_count_ag(vcf,
+                                             x["seqname"],
+                                             x["start"],
+                                             x["end"]),
+                             axis=1)
+        windows["snp_count_ag"] = estimates
+
+    if "snp_count_ac" in statistics:
+        print("Process number of A+C SNPs")
+        estimates = windows.mapply(lambda x: div.snp_count_ac(vcf,
+                                             x["seqname"],
+                                             x["start"],
+                                             x["end"]),
+                             axis=1)
+        windows["snp_count_ac"] = estimates
+
+    if "snp_count_gt" in statistics:
+        print("Process number of G+T SNPs")
+        estimates = windows.mapply(lambda x: div.snp_count_gt(vcf,
+                                             x["seqname"],
+                                             x["start"],
+                                             x["end"]),
+                             axis=1)
+        windows["snp_count_gt"] = estimates
+
     if "snp_count_gc" in statistics:
         print("Process number of G+C SNPs")
         estimates = windows.mapply(lambda x: div.snp_count_gc(vcf,
