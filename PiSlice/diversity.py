@@ -48,10 +48,10 @@ def snp_count_combination(vcf, chrom, start, stop, base1, base2):
     snp_alt = snp_alt[vcf["variants/CHROM"] == chrom]
     snp_alt = snp_alt[(pos >= start) & (pos <= stop)]
 
-    ref1 = (snp_ref == chr(base1))
-    ref2 = (snp_ref == chr(base2))
-    alt1 = [chr(base1) in i for i in snp_alt]
-    alt2 = [chr(base2) in i for i in snp_alt]
+    ref1 = (snp_ref == str(base1))
+    ref2 = (snp_ref == str(base2))
+    alt1 = [str(base1) in i for i in snp_alt]
+    alt2 = [str(base2) in i for i in snp_alt]
     try:
         snpcount = sum(ref1 & alt1) + sum(ref2 & alt2)
     except TypeError:
