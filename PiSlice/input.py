@@ -600,7 +600,7 @@ def read_gff(gff_file, parse=False, parse_introns=False, parse_utr=False, infer_
             gff["rank"] = None
     elif (".csv" in gff_file):
         file = gzip.open(gff_file, 'r')
-        gff = pandas.read_csv(file, sep="\t", keep_default_na=False, na_values=['NaN'])
+        gff = pandas.read_csv(file, sep="\t", comment="#", low_memory=False, keep_default_na=False, na_values=['NaN'])
         gff = gff.astype({"seqname": str})
         file.close()
     return(gff)
