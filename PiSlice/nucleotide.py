@@ -84,7 +84,10 @@ def gene_nbexons(gff, chromosome, start, end):
         gene_nbexons = np.NaN
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", category=RuntimeWarning)
-        gene_nbexons = np.mean(gene_nbexons)
+        try:
+            gene_nbexons = np.mean(gene_nbexons)
+        except:
+            gene_nbexons = np.NaN
     return(gene_nbexons)
 
 def gene_density(gff, chromosome, start, end):
