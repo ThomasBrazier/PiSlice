@@ -35,6 +35,8 @@ Output to STDOUT or files.
 PiSlice has a setup and can be installed locally with pip. Run the following command in the PiSlice git directory.
 
 ‘‘‘
+git clone https://github.com/ThomasBrazier/PiSlice.git
+cd PiSlice
 pip install .
 ‘‘‘
 
