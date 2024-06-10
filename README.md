@@ -4,11 +4,11 @@
 
 [//]: # (Manipulate features that have a sense/meaning e.g. exon ranks gene categories...)
 
-Package in active development (BETA).
+Package in active development (ALPHA version). Therefore it is only at the proof of concept stage (not optimized at all).
 
 Estimate Pi and other evolutionary and population genomics statistics (PiN, PiS, Tajima's D, GC content) for a given list of windows coordinates.
 
-Genomic analyses from chromosome to gene scale (e.g. explore the intron/exons structure).
+Genomic analyses from chromosome to gene scale (e.g. explore the intron/exons structure). The package allows to infer genomic features or intervals (introns, UTRs, arbitrary flanking regions) from a given GFF. It also allows to parse GFF to recover important informations of gene structure (exon/CDS/intron rank order, number of exons, parent/children relations between genes/mRNA/exons/introns).
 
 The package is made for flexible use, and can be run as a Python package or a standalone CLI.
 
@@ -104,18 +104,4 @@ Population genomics:
 
 ### Figures
 
-## Comparison with other packages
 
-* BioPython
-* Bio++
-* sgkit
-* tskit
-* Genepop
-* gffread to extract CDS or exons
-* seqtk
-* WindowScanr: sliding window analysis in R https://github.com/tavareshugo/WindowScanR
-
-## Code convention
-
-* snake_case
-* scripts, functions and variables all begin by lower case
