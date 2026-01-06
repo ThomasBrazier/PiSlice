@@ -1,3 +1,6 @@
+import polars_bio as pb
+pb.read_vcf("gs://gcp-public-data--gnomad/release/4.1/genome_sv/gnomad.v4.1.sv.sites.vcf.gz", compression_type="bgz").limit(3).collect()
+
 
 # Test the VCF nucleotide diversity part
 import PiSlice.core as ps

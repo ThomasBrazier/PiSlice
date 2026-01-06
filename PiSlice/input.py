@@ -2,12 +2,18 @@
 """
 Input
 
-Define classes for genomic objects like fasta, gff and vcf
+Define classes for a genomic object containing fasta, gff and/or vcf
 
-Functions in this module import .fasta, .gff, .vcf and coordinate files in appropriate formats
+Functions in this module import .fasta, .gff, .vcf
+and coordinate files
 """
 
-# TODO Create a global unified and consistent 'genomic' object that contain all data in slots: genome sequence, features, snps and associated metadata
+# TODO Create a global unified and consistent 'genomic' object -> NO
+# TODO Simplify objects: fasta, gff, vcf... are independent but with
+# some commonalities, rethink everything
+# They are intervals, commmon coordinates
+# that contain all data in slots:
+# genome sequence, features, snps and associated metadata
 import pandas as pd
 from cyvcf2 import VCF
 import numpy as np
@@ -84,6 +90,8 @@ from Bio import SeqIO
 # DONE Replace pysam FastaFile by a dictionnary with (chr name: sequence string)
 # Assert if new class reproduce results of the pysam.fetch
 # TODO parallelize pool.apply()
+
+
 class fasta():
     """
     Read a fasta file and return a 'fasta' sequence object
@@ -127,7 +135,6 @@ class fasta():
         # Chromosome can be either an integer (index) or a string (name)
         return self.seq[str(chromosome)]
 
-
     def sample_sequence(self, chromosome, start, end):
         """
         Sample a DNA sequence on a chromosome within start-end coordinates (bp)
@@ -159,7 +166,7 @@ class fasta():
         :return: A DNA sequence within boundaries start-end on a given chromosome (str)
         """
         # Expand masked intervals
-        mask = [(x - 1, y + 1) for x,y in mask]
+        mask = [(x - 1, y + 1) for x, y in mask]
         # Take care of Null interval objects
         if end > start:
             coord = intervaltree.IntervalTree.from_tuples([(start, end)])
@@ -185,7 +192,7 @@ class fasta():
 
 # Extending Pandas with new methods for gff
 # Accessible by the gff namespace
-@pandas.api.extensions.register_dataframe_accessor("gff")
+@pd.api.extensions.register_dataframe_accessor("gff")
 class GffAccessor:
     """
     Read a gff file and return a pandas 'DataFrame' object
@@ -193,7 +200,6 @@ class GffAccessor:
     :param parse: False, if True, then attributes are parsed and the relationships parent-children are found between gene-mRNA-exon-CDS
     """
     def __init__(self, pandas_obj):
-        #self._validate(pandas_obj)
         self._obj = pandas_obj
 
     # @staticmethod
@@ -213,7 +219,7 @@ class GffAccessor:
         gff_obj["parent"] = None
         gff_obj["name"] = None
         gff_obj["gene_biotype"] = None
-        #gff_obj = gff_obj.reset_index() # Reset index to get continuous row indexes to iterate
+
         if (n_cpus == 0):
             n_cpus = multiprocessing.cpu_count()
         sensible_cpus = mapply.parallel.sensible_cpu_count()
@@ -223,6 +229,7 @@ class GffAccessor:
 
         # TODO Vectorize
         attr = gff_obj["attribute"].astype(str)
+
         def find_attribute(s, category="Name"):
             """
             Find the attribute with the 'category' in a string
@@ -233,7 +240,7 @@ class GffAccessor:
                 attribute = ""
             attribute = attribute.replace(";", "")
             attribute = attribute.replace(category + "=", "")
-            return(attribute)
+            return attribute
 
         id_attr = list(map(lambda x: find_attribute(x, category="ID"), attr))
         try:
@@ -256,56 +263,8 @@ class GffAccessor:
         except:
             gff_obj["gene_biotype"] = None
 
-
-        # for i, r in gff_obj.iterrows():
-        #     a = r["attribute"]
-        #     try:
-        #         id_name = re.findall("ID=[A-Za-z0-9\\.\\-\\|\\_\\:]*;", a)[0]
-        #     except:
-        #         id_name = ""
-        #     id_name = id_name.replace(";", "")
-        #     id_name = id_name.replace("ID=", "")
-        #     try:
-        #         gff_obj.loc[i,"id"] = id_name
-        #     except:
-        #         gff_obj.loc[i,"id"] = None
-        #
-        #     try:
-        #         parent_term = re.findall(";Parent=[A-Za-z0-9\\.\\-\\|\\_\\:]*[;]*", a)[0]
-        #     except:
-        #         parent_term = ""
-        #     parent_term = parent_term.replace(";", "")
-        #     parent_term = parent_term.replace("Parent=", "")
-        #     try:
-        #         gff_obj.loc[i,"parent"] = parent_term
-        #     except:
-        #         gff_obj.loc[i,"parent"] = None
-        #
-        #     try:
-        #         name_term = re.findall(";Name=[A-Za-z0-9\\.\\-\\|\\_\\:]*[;]*", a)[0]
-        #     except:
-        #         name_term = ""
-        #     name_term = name_term.replace(";", "")
-        #     name_term = name_term.replace("Name=", "")
-        #     try:
-        #         gff_obj.loc[i,"name"] = name_term
-        #     except:
-        #         gff_obj.loc[i,"name"] = None
-        #
-        #     try:
-        #         biotype_term = re.findall(";gene_biotype=[A-Za-z0-9\\.\\-\\|\\_]*[;]*", a)[0]
-        #     except:
-        #         biotype_term = ""
-        #     biotype_term = biotype_term.replace(";", "")
-        #     biotype_term = biotype_term.replace("gene_biotype=", "")
-        #     try:
-        #         gff_obj.loc[i,"gene_biotype"] = biotype_term
-        #     except:
-        #         gff_obj.loc[i,"gene_biotype"] = None
-
         # Change "transcript" feature to "mRNA" -> consistency
         gff_obj.loc[gff_obj["feature"] == "transcript", "feature"] = "mRNA"
-
 
         if (parse_introns):
             if verbose:
@@ -313,6 +272,7 @@ class GffAccessor:
             # Infer introns features
             # Introns are sequences between two consecutive exons within the same gene
             # They have a rank to infer subsequently
+            
             def intron(gff, gene_id):
                 """
                 Return a gff data frame with intron features of a given gene
@@ -342,42 +302,36 @@ class GffAccessor:
                     gff_introns["end"] = intron_end
                     gff_introns = gff_introns.replace(['exon'], 'intron')
                     gff_introns["id"] = gff_introns["id"].str.replace("exon", "intron", regex=True)
-                    return (gff_introns)
+                    return gff_introns
                 else:
                     pass
 
             p = Pool(min(sensible_cpus, n_cpus))
             # List of exon parents
             list_parent = list(gff_obj.gff.feature("exon")["parent"].unique())
-            #res = list(map(lambda x: intron(gff_obj, x), list_parent))
             res = list(map(lambda x: intron(gff_obj, x), list_parent))
             # Append the gff of new introns to the dataset
             if verbose:
                 print("Append new introns")
             gff_obj = gff_obj.append(res)
-            #gff_obj = pd.concat([gff_obj, res])
 
         # Infer exon/CDS rank from position or parent
         # CDS inherits rank of its parent exon
         # rank = [0] * gff_obj.shape[0]
         def rank_inference(gff_obj, x):
             # Optim: do not create new objects
-            #x = gff_obj.iloc[idx,:]
             gff_subset = gff_obj[(gff_obj["feature"] == x["feature"]) & (gff_obj["parent"] == x["parent"])].copy()
-            #filter_ = ((gff_obj["feature"] == x["feature"]) & (gff_obj["parent"] == x["parent"]))
-            #set = gff_obj.gff.children(x["parent"])
-            #set = set.gff.feature(x["feature"])
-            #gff_obj[(gff_obj["feature"] == x["feature"]) & (gff_obj["parent"] == x["parent"])]["start"]
+
             if (x["strand"] == "+"):
-            # Rank: how many sequences of the same feature and parent are before that one?
+                # Rank: how many sequences of the same feature and parent are before that one?
                 rk = sum(bool(z) for z in [s <= int(x["start"]) for s in list(gff_subset["start"])])
             elif (x["strand"] == "-"):
-            # Rank: how many sequences of the same feature and parent are after that one?
-            # Read in the opposite direction
+                # Rank: how many sequences of the same feature and parent are after that one?
+                # Read in the opposite direction
                 rk = sum(bool(z) for z in [s >= int(x["start"]) for s in list(gff_subset["start"])])
             else:
                 rk = 0
-            return(rk)
+            return rk
 
         if (infer_rank):
             if verbose:
@@ -398,7 +352,7 @@ class GffAccessor:
         if (parse_utr):
             # Infer UTR features
             # UTR sequences are beginning of the first exon or the end of the last exon (exon - CDS)
-            # According to gff specifications, "UTRs, splice sites and translational start and stop sites.
+            # According to gff specifications, "UTRs, splice sites and transcription start and stop sites.
             # These are implied by the combination of exon and CDS and do not need to be explicitly annotated as part of the canonical gene"
             if verbose:
                 print("Parsing UTR regions")
@@ -451,8 +405,6 @@ class GffAccessor:
                         utr3["feature"] = "utr3"
                     except ValueError:
                         pass
-                #utr = utr5
-                #utr = utr.append(utr3)
                 utr = pd.concat([utr5, utr3])
                 return (utr)
 
@@ -463,7 +415,7 @@ class GffAccessor:
                 children = gff_obj.gff.children(gene, all=True)
                 # Take care of non coding genes
                 if ("CDS" not in children["feature"].unique()):
-                    return(None)
+                    return (None)
                 if ("mRNA" in children["feature"].unique()):
                     ids = children.loc[(children["feature"] == "mRNA"), "id"]
                 else:
@@ -478,43 +430,30 @@ class GffAccessor:
                     pass
 
 
-            #utrs = list(map(lambda x: utr_parse(gff_obj, x), list_genes))
-            #gff_obj = gff_obj.append(utrs)
-
             # 5'UTR in first exon, 3'UTR in last exon, UTRs inherit attributes from their parent exon
             # Subset first and last exons for each gene/mRNA
             list_genes = list(gff_obj.loc[(gff_obj["feature"] == "gene"), "id"])
             list_genes = list(filter(lambda x: x is not None, list_genes))
-            #list_genes = gff_obj.loc[(gff_obj["feature"] == "gene"), "id"]
-            #utrs = [utr_parse(gff_obj, x) for x in list_genes]
             p = Pool(min(sensible_cpus, n_cpus))
             utrs = list(p.map(lambda x: utr_parse(gff_obj, x), list_genes))
-            #utrs = list(p.map(lambda x: utr_parse(gff_obj, x), list_genes))
-            #mapply.init(n_workers=n_cpus)
-            #utrs = list_genes.mapply(lambda x: utr_parse(gff_obj, x))
-            #utrs = pd.concat(utrs)
+
             # Clean the list for NoneType
             # TODO better handling of this error: utr_parse return NoneType
             clean_utrs = list(filter(lambda x: x is not None, utrs))
             if verbose:
                 print("Append new UTRs")
-            #clean_utrs = [x for x in utrs if x is not None]
             gff_obj = gff_obj.append(clean_utrs)
-            #clean_utrs = pd.Series(clean_utrs)
-            #clean_utrs = pd.DataFrame(clean_utrs)
-            #gff_obj = pd.concat([gff_obj, clean_utrs])
 
         gff_obj.start = gff_obj.start.astype(int, errors='ignore') # Leave NA values as they are
         gff_obj.end = gff_obj.end.astype(int, errors='ignore')
         return(gff_obj)
-
 
     def region(self, start, end, seq):
         """
         Return a new gff object with only features (rows) completely within the queried genomic region
         """
         subset = self._obj[(self._obj["start"] >= start) & (self._obj["end"] <= end) & (self._obj["seqname"] == seq)]
-        return(subset)
+        return (subset)
 
     def id(self, id):
         """
@@ -523,7 +462,7 @@ class GffAccessor:
         if (type(id) == str):
             id = [id]
         subset = self._obj[self._obj["id"].isin(id)]
-        return(subset)
+        return (subset)
 
     def parent(self, id):
         """
@@ -533,8 +472,7 @@ class GffAccessor:
             id = [id]
         parent = list(set(self._obj[self._obj["id"].isin(id)]["parent"]))
         subset = self._obj[self._obj["id"].isin(parent)]
-        return(subset)
-
+        return (subset)
 
     def children(self, id, all=True):
         """
@@ -552,8 +490,7 @@ class GffAccessor:
             # if len(recursive_children) > 0:
             #     recursive_children = self._obj.gff.children(list(subset["id"]), all=False)
             #     subset = subset.append(recursive_children)
-        return(subset)
-
+        return (subset)
 
     def feature(self, feature):
         """
@@ -562,7 +499,7 @@ class GffAccessor:
         if (type(feature) == str):
             feature = [feature]
         subset = self._obj[self._obj["feature"].isin(feature)]
-        return(subset)
+        return (subset)
 
     def rank(self, rank):
         """
@@ -572,8 +509,7 @@ class GffAccessor:
         if (type(rank) == int):
             rank = [rank]
         subset = subset[subset["rank"].isin(rank)]
-        return(subset)
-
+        return (subset)
 
     def summary(self):
         """
@@ -584,7 +520,7 @@ class GffAccessor:
 def read_gff(gff_file, parse=False, parse_introns=False, parse_utr=False, infer_rank=False, n_cpus=8):
     if (".gff" in gff_file):
         file = gzip.open(gff_file, 'r')
-        gff = pandas.read_csv(file, sep="\t", comment="#", low_memory=False,
+        gff = pd.read_csv(file, sep="\t", comment="#", low_memory=False,
                               names=["seqname", "source", "feature", "start", "end",
                                      "score", "strand", "frame", "attribute"])
         file.close()
@@ -599,10 +535,11 @@ def read_gff(gff_file, parse=False, parse_introns=False, parse_utr=False, infer_
             gff["rank"] = None
     elif (".csv" in gff_file):
         file = gzip.open(gff_file, 'r')
-        gff = pandas.read_csv(file, sep="\t", keep_default_na=False, na_values=['NaN'])
+        gff = pd.read_csv(file, sep="\t", keep_default_na=False, na_values=['NaN'])
         gff = gff.astype({"seqname": str})
         file.close()
-    return(gff)
+    return (gff)
+
 
 def write_gff2csv(gff, filename):
     # Preserve column order

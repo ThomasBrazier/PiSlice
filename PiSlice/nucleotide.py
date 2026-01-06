@@ -1,8 +1,8 @@
-#0 -*- coding: utf-8 -*-
+# 0 -*- coding: utf-8 -*-
 """
 Population genomics statistics.
 
-Functions in this module are used to estimate population genomics statistics along a sequence.
+Functions in this module are used to estimate nucleotide-based statistics.
 """
 
 import pandas as pd
@@ -10,6 +10,7 @@ import numpy as np
 import re
 import intervaltree
 import warnings
+
 
 def gene_count(gff, chromosome, start, end):
     """
@@ -21,13 +22,13 @@ def gene_count(gff, chromosome, start, end):
     :return: int, number of genes in the gff window
     """
     gene_count = gff[(gff['seqname'] == str(chromosome)) &
-               (gff['start'] >= int(start)) &
-               (gff['start'] < int(end)) &
-               (gff['feature'] == "gene")]
+                (gff['start'] >= int(start)) &
+                (gff['start'] < int(end)) &
+                (gff['feature'] == "gene")]
     gene_count = len(gene_count)
     return gene_count
 
-# DONE Factorize gene_length, exon_length, intron_length to a generic feature_length function
+
 def feature_length(gff, chromosome, start, end, feature="gene"):
     """
     Estimate the mean length (bp) of a feature in the window
@@ -55,11 +56,9 @@ def max_rank(gff, gene_id):
     """
     # Get second order children (mRNA and exons)
     children = gff.gff.children(gene_id, all=True)
-    #children2 = gff.gff.children(children1["id"])
-    #frames = [children1, children2]
-    #result = pd.concat(frames)
     max_rank = np.max(children["rank"])
-    return(max_rank)
+
+    return max_rank
 
 
 def gene_nbexons(gff, chromosome, start, end):
@@ -72,8 +71,8 @@ def gene_nbexons(gff, chromosome, start, end):
     :return: int, mean number of exons per gene
     """
     genes = gff[(gff['seqname'] == str(chromosome)) &
-               (gff['start'] >= int(start)) &
-               (gff['start'] < int(end))].copy()
+                (gff['start'] >= int(start)) &
+                (gff['start'] < int(end))].copy()
     # TODO Parse only if ranks have not been inferred
     # genes = genes.gff.parse_attributes(infer_rank=True, verbose=False)
     # Max rank for each gene
@@ -83,7 +82,8 @@ def gene_nbexons(gff, chromosome, start, end):
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", category=RuntimeWarning)
         gene_nbexons = np.mean(gene_nbexons)
-    return(gene_nbexons)
+    return gene_nbexons
+
 
 def gene_density(gff, chromosome, start, end):
     """
@@ -102,7 +102,6 @@ def gene_density(gff, chromosome, start, end):
     gene_len = np.sum(gene_len)
     gene_density = gene_len/(end - start + 1)
     return gene_density
-
 
 
 def gc(sequence, min_bp=6):
@@ -151,6 +150,7 @@ def gc_count(sequence):
     else:
         return np.NaN
 
+
 def at_count(sequence):
     """
     Count the number of A+T nucleotides in a DNA sequence.
@@ -164,6 +164,7 @@ def at_count(sequence):
         return at_count
     else:
         return np.NaN
+
 
 def missing_nucleotide(sequence):
     """
@@ -329,7 +330,7 @@ def gc_intergenic(fasta, gff, chromosome, start, end, min_bp=6):
         gc_intergenic = gc(noncoding_seq, min_bp=min_bp)
     elif (feat.shape[0] > 0):
         # Masking regions
-        mask = [(x,y) for x,y in zip(list(feat.start), list(feat.end))]
+        mask = [(x, y) for x, y in zip(list(feat.start), list(feat.end))]
         # Sample sequences
         seq = fasta.sample_sequence_masked(chromosome, start, end, mask)
         gc_intergenic = gc(seq)
@@ -341,7 +342,6 @@ def gc_intergenic(fasta, gff, chromosome, start, end, min_bp=6):
         gc_intergenic = np.NaN
         intergenic_prop = np.NaN
     return (gc_intergenic, intergenic_prop)
-
 
 
 def gc_intron(fasta, gff, chromosome, start, end, min_bp=6, splicing_strategy="merge"):
@@ -406,7 +406,6 @@ def gc_intron(fasta, gff, chromosome, start, end, min_bp=6, splicing_strategy="m
     return (gc_intron, intron_prop)
 
 
-
 def gc1(fasta, gff, chromosome, start, end):
     gc1 = gc_codon(fasta, gff, chromosome, start, end)[1]
     return gc1
@@ -420,6 +419,7 @@ def gc2(fasta, gff, chromosome, start, end):
 def gc3(fasta, gff, chromosome, start, end):
     gc3 = gc_codon(fasta, gff, chromosome, start, end)[3]
     return gc3
+
 
 def gc3exon1(fasta, gff, chromosome, start, end, min_bp=6):
     gffexon1 = gff.loc[((gff["rank"] == 0) | (gff["rank"] == 1))]
@@ -444,6 +444,6 @@ def cpg(sequence):
                 cpg_density = 0
         else:
             cpg_density = np.NaN
-        return(cpg_density)
+        return cpg_density
     else:
-        return(np.NaN)
+        return np.NaN
